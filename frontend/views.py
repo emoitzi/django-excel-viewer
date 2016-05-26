@@ -1,6 +1,7 @@
 from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
+from allauth.account.views import login
 
 from openpyxl import load_workbook
 
@@ -35,3 +36,9 @@ def document(request, document_id):
     context = {"document": document,
                }
     return render(request, "frontend/index.html", context)
+
+
+def index(request):
+    if request.user.is_authenticated():
+        return render(request, "index.html")
+    return login(request)
