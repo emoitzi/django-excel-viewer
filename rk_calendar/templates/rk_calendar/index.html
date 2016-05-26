@@ -1,23 +1,21 @@
-{% load cells %}
+{% load excel %}
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <title>Calendar</title>
     <link rel="stylesheet" href="http://yui.yahooapis.com/pure/0.6.0/pure-min.css">
-    {% color_css work_sheet %}
+    {% color_css document %}
 </head>
 <body>
 
 <table class="pure-table-bordered">
-    {% for row in rows %}
+    {% for row in document.row_set.all %}
         <tr>
-            {% for cell in row %}
-                {% if not cell.coordinate in skip_list %}
-                    <td {% attribute start_cells cell %} {% cell_class cell %}>
-                        {{ cell.value }}
-                    </td>
-                {% endif %}
+            {% for cell in row.cell_set.all %}
+                <td  {{ cell.span_attributes }} class="{{ cell.color_name }}">
+                    {{ cell.value }}
+                </td>
             {% endfor %}
         </tr>
     {% endfor %}

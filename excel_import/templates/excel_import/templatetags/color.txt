@@ -2,7 +2,7 @@
 {% for color in colors %}
 .{{ color.name }}
 {
-    background-color: #{{color.value}};
+    background-color: #{{color.color}};
 }
 {% endfor %}
 </style>

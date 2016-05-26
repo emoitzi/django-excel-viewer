@@ -3,6 +3,7 @@ from django.shortcuts import render
 
 from openpyxl import load_workbook
 
+from excel_import.models import Document
 
 def str_to_ord(string):
     if len(string) > 1:
@@ -25,40 +26,9 @@ def get_span(start, end):
 
     return column_span, row_span
 
+def calendar(request, document_id):
+    document = Document.objects.get(id=int(document_id))
 
-
-
-def calendar(request):
-    workbook = load_workbook("test.xlsx")
-    sheet_names = workbook.get_sheet_names()
-    work_sheet = workbook[sheet_names[0]]
-
-    start_cells = dict()
-
-
-    skip_list = work_sheet.merged_cells.copy()
-    for range in work_sheet.merged_cell_ranges:
-        start, end = range.split(':')
-        skip_list.remove(start)
-
-        column_span, row_span = get_span(start, end)
-        cell_span = str()
-        if row_span:
-            cell_span = 'rowspan=%d' % row_span
-        if column_span:
-            cell_span += ' colspan=%d' % column_span
-        start_cells[start] = cell_span
-
-
-
-
-    # for row in work_sheet.rows:
-    #     for cell in row:
-    #         if cell
-
-    context = {"rows": work_sheet.rows,
-               "skip_list": skip_list,
-               "start_cells": start_cells,
-               "work_sheet": work_sheet,
+    context = {"document": document,
                }
     return render(request, "rk_calendar/index.html", context)
