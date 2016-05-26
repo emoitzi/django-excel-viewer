@@ -18,5 +18,6 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^calendar/', include('frontend.urls', namespace='calendar')),
+    url(r'^document/', include('frontend.urls', namespace='document')),
+    url(r'^accounts/', include('allauth.urls')),
 ]

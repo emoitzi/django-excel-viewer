@@ -1,3 +1,4 @@
+from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse
 from django.shortcuts import render
 
@@ -27,7 +28,8 @@ def get_span(start, end):
     return column_span, row_span
 
 
-def calendar(request, document_id):
+@login_required
+def document(request, document_id):
     document = Document.objects.get(id=int(document_id))
 
     context = {"document": document,
