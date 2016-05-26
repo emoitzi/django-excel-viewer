@@ -26,9 +26,10 @@ def get_span(start, end):
 
     return column_span, row_span
 
+
 def calendar(request, document_id):
     document = Document.objects.get(id=int(document_id))
 
     context = {"document": document,
                }
-    return render(request, "rk_calendar/index.html", context)
+    return render(request, "frontend/index.html", context)

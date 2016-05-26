@@ -3,7 +3,7 @@ import os
 import sys
 
 if __name__ == "__main__":
-    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rk_roster.settings")
+    os.environ.setdefault("DJANGO_SETTINGS_MODULE", "excel_viewer.settings")
 
     from django.core.management import execute_from_command_line
 

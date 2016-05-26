@@ -18,5 +18,5 @@ from django.contrib import admin
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
-    url(r'^calendar/', include('rk_calendar.urls', namespace='calendar')),
+    url(r'^calendar/', include('frontend.urls', namespace='calendar')),
 ]

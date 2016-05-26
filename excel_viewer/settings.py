@@ -37,8 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
 
-    'rk_calendar',
+    'frontend',
     'excel_import',
 ]
 
@@ -53,7 +54,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-ROOT_URLCONF = 'rk_roster.urls'
+ROOT_URLCONF = 'excel_viewer.urls'
 
 TEMPLATES = [
     {
@@ -72,7 +73,9 @@ TEMPLATES = [
     },
 ]
 
-WSGI_APPLICATION = 'rk_roster.wsgi.application'
+
+
+WSGI_APPLICATION = 'excel_viewer.wsgi.application'
 
 
 # Database

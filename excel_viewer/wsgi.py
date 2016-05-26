@@ -11,6 +11,6 @@ import os
 
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "rk_roster.settings")
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "excel_viewer.settings")
 
 application = get_wsgi_application()
