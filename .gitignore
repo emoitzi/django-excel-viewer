@@ -4,3 +4,4 @@ test.xlsx
 *.log
 *.sqlite3
 *.xlsx#
+data
