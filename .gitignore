@@ -1,5 +1,6 @@
 *.pyc
 .idea
-*.xlsx
+test.xlsx
 *.log
 *.sqlite3
+*.xlsx#
