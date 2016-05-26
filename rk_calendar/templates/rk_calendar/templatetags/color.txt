@@ -1,0 +1,8 @@
+<style>
+{% for color in colors %}
+.{{ color.name }}
+{
+    background-color: #{{color.value}};
+}
+{% endfor %}
+</style>

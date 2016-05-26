@@ -37,6 +37,9 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+
+    'rk_calendar',
+    'excel_import',
 ]
 
 MIDDLEWARE_CLASSES = [

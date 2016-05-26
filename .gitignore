@@ -1,0 +1,5 @@
+*.pyc
+.idea
+*.xlsx
+*.log
+*.sqlite3
