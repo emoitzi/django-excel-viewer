@@ -5,4 +5,13 @@
     background-color: #{{color.color}};
 }
 {% endfor %}
+.center {
+    text-align: center;
+}
+.left {
+    text-align: left;
+}
+.right {
+    text-align: right;
+}
 </style>
