@@ -1,6 +1,9 @@
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse
+from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.forms.models import ModelForm
+from django.http import HttpResponseRedirect
 from django.shortcuts import render
+from django.views.generic.edit import CreateView, FormView
 from allauth.account.views import login
 
 from openpyxl import load_workbook
@@ -28,6 +31,20 @@ def get_span(start, end):
 
     return column_span, row_span
 
+@login_required
+def list_documents(request):
+    document_list = Document.objects.all()
+    paginator = Paginator(document_list, 25)
+
+    page = request.GET.get('page')
+    try:
+        documents = paginator.page(page)
+    except PageNotAnInteger:
+        documents = paginator.page(1)
+    except EmptyPage:
+        documents = paginator.page(paginator.num_pages)
+
+    return render(request, "frontend/document_list.html", {"documents": documents})
 
 @login_required
 def document(request, document_id):
@@ -36,6 +53,15 @@ def document(request, document_id):
     context = {"document": document,
                }
     return render(request, "frontend/index.html", context)
+
+
+class DocumentCreate(CreateView):
+    model = Document
+    fields = ['file', 'name']
+    success_url = '/'
+    template_name = "frontend/document_form.html"
+
+create = login_required(DocumentCreate.as_view())
 
 
 def index(request):

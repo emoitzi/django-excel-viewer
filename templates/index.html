@@ -1,12 +1,15 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Excel Viewer</title>
-</head>
-<body>
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
 Welcome.<br>
-<a href="{% url 'account_logout' %}" >Logout</a>
+<div>
+    <a href="{% url 'account_logout' %}" >{% trans "Logout" %}</a>
+</div>
+<div>
+    <a href="{% url 'document:list' %}"> {% trans "List documents" %} </a>
+</div>
+<div>
+    <a href="{% url 'document:create' %}"> {% trans "Upload" %} </a>
+</div>
 
-</body>
-</html>
+{% endblock content %}

@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block content %}
+
+<h1>{% trans "Document list" %}</h1>
+{% for document in documents %}
+    {# Each "contact" is a Contact model object. #}
+    <div>
+    <a href="{% url "document:document" document.id %}">{{ document.name}}</a>
+    </div>
+{% endfor %}
+
+<div class="pagination">
+    <span class="step-links">
+        {% if documents.has_previous %}
+            <a href="?page={{ documents.previous_page_number }}">previous</a>
+        {% endif %}
+
+        <span class="current">
+            Page {{ documents.number }} of {{ documents.paginator.num_pages }}.
+        </span>
+
+        {% if documents.has_next %}
+            <a href="?page={{ documents.next_page_number }}">next</a>
+        {% endif %}
+    </span>
+</div>
+{% endblock content %}

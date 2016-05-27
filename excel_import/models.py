@@ -34,6 +34,18 @@ def get_span(start, end):
 
 class Document(models.Model):
     file = models.FileField(blank=True, null=True)
+    name = models.CharField(max_length=100)
+
+    def save(self, *args, **kwargs):
+        parse_file = False
+        if not self.pk:
+            parse_file = True
+        super(Document, self).save(*args, **kwargs)
+
+        if parse_file:
+            self.parse_file()
+
+
 
     def create_colors(self, work_sheet):
         color_set = set()
@@ -60,10 +72,8 @@ class Document(models.Model):
             name = ''.join(['color_', str(index)])
             DocumentColors.objects.create(name=name, color=str(COLOR_INDEX[index][2:]), document=self)
 
-
-    @classmethod
-    def create_document(cls, path):
-        workbook = load_workbook(path)
+    def parse_file(self):
+        workbook = load_workbook(self.file.path)
         sheet_names = workbook.get_sheet_names()
         work_sheet = workbook[sheet_names[0]]
 
@@ -82,12 +92,11 @@ class Document(models.Model):
                 cell_span['column_span'] = column_span
             start_cells[start] = cell_span
 
-        document = cls.objects.create()
-        document.create_colors(work_sheet)
+        self.create_colors(work_sheet)
         logger.info("colors created")
         cell_list = list()
         for row in work_sheet.rows:
-            db_row = Row.objects.create(document=document)
+            db_row = Row.objects.create(document=self)
             for cell in row:
                 if cell.coordinate in skip_list:
                     continue
