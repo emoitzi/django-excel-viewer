@@ -56,9 +56,11 @@ INSTALLED_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+    'allauth.socialaccount.providers.facebook',
 
     'frontend',
     'excel_import',
+    'users',
 ]
 
 SITE_ID = 1
@@ -169,6 +171,23 @@ MEDIA_ROOT = os.path.join(DATA_DIR, 'media')
 LOGIN_REDIRECT_URL = '/'
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_LOGOUT_ON_GET = True
 
+SOCIALACCOUNT_ADAPTER = "users.adapter.SocialAccountAdapter"
+SOCIALACCOUNT_PROVIDERS = \
+    {'facebook':
+       {'METHOD': 'js_sdk',
+        'SCOPE': ['email', 'public_profile', 'user_friends'],
+        'FIELDS': [
+            'id',
+            'email',
+            'name',
+            'first_name',
+            'last_name',
+            'verified',
+],
+        'EXCHANGE_TOKEN': True,
+        'VERIFIED_EMAIL': True,
+        'VERSION': 'v2.4'}}
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
