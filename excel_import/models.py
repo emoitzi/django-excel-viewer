@@ -122,7 +122,7 @@ class Row(models.Model):
 
 
 class Cell(models.Model):
-    coordinate = models.CharField(max_length=2)
+    coordinate = models.CharField(max_length=15)
     value = models.CharField(max_length=255, default="", blank=True)
     color_name = models.CharField(max_length=20)
     row_span = models.IntegerField(blank=True, null=True, validators=MinValueValidator(1))
