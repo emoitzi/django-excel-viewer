@@ -1,3 +1,5 @@
+from django.db.models import Q
+from django.db.models.fields import DateTimeField
 from openpyxl import load_workbook
 from openpyxl.styles.colors import COLOR_INDEX
 
@@ -32,18 +34,41 @@ def get_span(start, end):
     return column_span, row_span
 
 
+class DocumentManager(models.Manager):
+    def get_current(self, id):
+        instance = self.get_queryset().get((Q(replaces=id) & Q(current=True) & Q(replaces__isnull=False)) |
+                                            (Q(id=id)) & Q(current=True) & Q(replaces__isnull=True))
+        return instance
+
+    def all_current(self):
+        return self.get_queryset().filter(current=True)
+
+
 class Document(models.Model):
     file = models.FileField(blank=True, null=True)
+    replaces = models.ForeignKey('self', blank=True, null=True, )
     name = models.CharField(max_length=100)
+    created = models.DateTimeField(auto_now_add=True)
+    current = models.BooleanField(default=True)
+
+    objects = DocumentManager()
 
     def save(self, *args, **kwargs):
         parse_file = False
         if not self.pk:
+            if self.current:
+                Document.objects.filter(Q(replaces=self.replaces) | Q(id=self.replaces_id)) \
+                                .update(current=False)
             parse_file = True
         super(Document, self).save(*args, **kwargs)
 
         if parse_file:
             self.parse_file()
+
+    @property
+    def url_id(self):
+        return self.replaces_id or self.pk
+
 
     def create_colors(self, work_sheet):
         color_set = set()
