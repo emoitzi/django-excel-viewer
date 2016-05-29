@@ -8,7 +8,8 @@ from allauth.account.views import login
 
 from openpyxl import load_workbook
 
-from excel_import.models import Document
+from excel_import.models import Document, Cell
+
 
 def str_to_ord(string):
     if len(string) > 1:
@@ -46,11 +47,13 @@ def list_documents(request):
 
     return render(request, "frontend/document_list.html", {"documents": documents})
 
-@login_required
+# @login_required
 def document(request, document_id):
     document = Document.objects.get(id=int(document_id))
+    cells = Cell.objects.filter(document=document)
 
     context = {"document": document,
+               "cells": cells,
                }
     return render(request, "frontend/index.html", context)
 

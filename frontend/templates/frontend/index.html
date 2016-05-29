@@ -7,14 +7,12 @@
 
 {% block content %}
 <table class="pure-table-bordered">
-    {% for row in document.row_set.all %}
-        <tr>
-            {% for cell in row.cell_set.all %}
-                <td  {{ cell.attributes }} class="{{ cell.class_tags }}">
-                    {{ cell.value }}
-                </td>
-            {% endfor %}
-        </tr>
+    {% for cell in cells %}
+        {% if cell.first_cell %}<tr>{% endif %}
+        <td  {{ cell.attributes }} class="{{ cell.class_tags }}">
+            {{ cell.value }}
+        </td>
+        {% if cell.last_cell %}</tr>{% endif %}
     {% endfor %}
 </table>
 {% endblock content %}

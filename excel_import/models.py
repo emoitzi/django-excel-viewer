@@ -45,8 +45,6 @@ class Document(models.Model):
         if parse_file:
             self.parse_file()
 
-
-
     def create_colors(self, work_sheet):
         color_set = set()
         index_set = set()
@@ -64,7 +62,6 @@ class Document(models.Model):
                 # TODO: Add theme colors
                 index_set.add(color.value)
 
-        color_list = list()
         for color in color_set:
             name = ''.join(['color_', str(color)])
             DocumentColors.objects.create(name=name, color=color[2:], document=self)
@@ -96,7 +93,10 @@ class Document(models.Model):
         logger.info("colors created")
         cell_list = list()
         for row in work_sheet.rows:
-            db_row = Row.objects.create(document=self)
+            # TODO: Check if all columns have same length
+            # TODO: skip empty cells/rows. E.g. skip row if first X(=10?) columns are empty
+            # db_row = Row.objects.create(document=self)
+            first_cell = True
             for cell in row:
                 if cell.coordinate in skip_list:
                     continue
@@ -111,14 +111,14 @@ class Document(models.Model):
                      color_name=''.join(['color_', str(cell.fill.fgColor.value)]),
                      row_span=row_span,
                      column_span=column_span,
-                     row=db_row,
+                     document=self,
                      horizontal_alignment=cell.style.alignment.horizontal,
+                    first_cell=first_cell,
                     ))
+                first_cell = False
                 logger.debug("created cell %s" %cell.coordinate)
+        cell_list[len(cell_list) - 1].last_cell=True
         Cell.objects.bulk_create(cell_list)
-
-class Row(models.Model):
-    document = models.ForeignKey(Document)
 
 
 class Cell(models.Model):
@@ -127,8 +127,13 @@ class Cell(models.Model):
     color_name = models.CharField(max_length=20)
     row_span = models.IntegerField(blank=True, null=True, validators=MinValueValidator(1))
     column_span = models.IntegerField(blank=True, null=True, validators=MinValueValidator(1))
-    row = models.ForeignKey(Row)
+    document = models.ForeignKey(Document, null=True, blank=True)
     horizontal_alignment = models.CharField(max_length=20, null=True, blank=True)
+    first_cell = models.BooleanField(default=False)
+    last_cell = models.BooleanField(default=False)
+
+    class Meta:
+        ordering = ['id', ]
 
     @property
     def attributes(self):
