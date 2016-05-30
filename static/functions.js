@@ -37,7 +37,7 @@ var VIEWER = VIEWER || {};
         init: function () {
             var $cells = $('[data-toggle="popover"]');
             if ($cells.length > 0) {
-                $cells.bind('click.popover', VIEWER.cells.addPopover);
+                $cells.on('click.popover', VIEWER.cells.addPopover);
             }
             VIEWER.cells.initLabels();
 
@@ -58,7 +58,6 @@ var VIEWER = VIEWER || {};
             $forms.submit(function (e) {
                 e.preventDefault();
                 var $form = $(this);
-                console.log("click event");
                 var action_url = e.currentTarget.action;
                 $.ajax({
                     url: action_url,
@@ -81,34 +80,32 @@ var VIEWER = VIEWER || {};
                             }
                         }
                         $cell.popover('destroy');
-                        $cell.unbind('click.popover-toggle');
-                        $cell.bind('click.popover', VIEWER.cells.addPopover);
-                        console.log("success");
-                    })
-                    .fail(function () {
-                        console.log("fail");
-                    })
-                    .always(function() {
-                        $cell.popover("hide");
+                        $cell.off('click.popover-toggle');
+                        $cell.on('click.popover', VIEWER.cells.addPopover);
+                        console.log("Form submit done")
                     })
             });
         },
         addPopover: function () {
+            console.log("add popover");
             var $cell = $(this);
-            $cell.unbind('click.popover');
+            $cell.off('click.popover');
             $.ajax({
                 url: '/document/popover/' + $cell.attr('data-id') + '/'
             })
+                .fail(function () {
+                    $cell.one('click.popover')
+                })
             .done(function(data) {
-                console.log("popover ajax done");
-                $cell.on('inserted.bs.popover', function() {
-                    console.log("popup instered");
+                console.log("ajax call done");
+                $cell.one('inserted.bs.popover', function() {
+                    console.log("popover inserted in dom");
                     VIEWER.cells.setRequestSubmitHandler($cell);
-                    $cell.bind('click.popover-toggle', VIEWER.cells.clickHandler);
+                    $cell.on('click.popover-toggle', VIEWER.cells.clickHandler);
                 });
                 $cell.popover({
                     html:true,
-                    content: function() {return data;}
+                    content:  data
                 });
                 $cell.popover('show');
             });

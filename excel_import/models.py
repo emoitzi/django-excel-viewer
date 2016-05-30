@@ -13,9 +13,12 @@ logger = logging.getLogger(__name__)
 
 
 def str_to_ord(string):
-    if len(string) > 1:
-        raise ValueError
-    return ord(string[0])
+    string = string.upper()
+    value = 0
+    for i in range(0, len(string)):
+        value += (ord(string[i]) - 64) * pow(26, len(string) - i - 1)
+    return value
+
 
 
 def get_span(start, end):
@@ -64,7 +67,8 @@ class Document(models.Model):
         parse_file = False
         if not self.pk:
             if self.current:
-                Document.objects.filter(Q(replaces=self.replaces) | Q(id=self.replaces_id)) \
+                Document.objects.filter((Q(replaces=self.replaces) & Q(replaces__isnull=False)) |
+                                        Q(id=self.replaces_id)) \
                     .update(current=False)
             parse_file = True
         super(Document, self).save(*args, **kwargs)
