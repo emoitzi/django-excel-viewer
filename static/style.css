@@ -1,0 +1,15 @@
+#cell-table td:hover {
+    background-color: lightsteelblue;
+}
+
+.request {
+    z-index: 1;
+    position: absolute;
+    display: none;
+    opacity: 0.9;
+}
+
+.changed {
+    background-color: red !important;
+}
+

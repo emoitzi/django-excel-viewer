@@ -1,11 +1,11 @@
 from django.db.models import Q
-from django.db.models.fields import DateTimeField
+from django.core.validators import MinValueValidator
+from django.db import models
+from django.utils.translation import ugettext_lazy as _
+
 from openpyxl import load_workbook
 from openpyxl.styles.colors import COLOR_INDEX
 
-
-from django.core.validators import MinValueValidator
-from django.db import models
 
 import logging
 
@@ -37,7 +37,7 @@ def get_span(start, end):
 class DocumentManager(models.Manager):
     def get_current(self, id):
         instance = self.get_queryset().get((Q(replaces=id) & Q(current=True) & Q(replaces__isnull=False)) |
-                                            (Q(id=id)) & Q(current=True) & Q(replaces__isnull=True))
+                                           (Q(id=id)) & Q(current=True) & Q(replaces__isnull=True))
         return instance
 
     def all_current(self):
@@ -45,11 +45,18 @@ class DocumentManager(models.Manager):
 
 
 class Document(models.Model):
+    OPEN = 1
+    REQUEST_ONLY = 2
+    LOCKED = 3
+    STATUS = ((OPEN, _("Open")),
+              (REQUEST_ONLY, _("Semi locked")),
+              (LOCKED, _("Locked")))
     file = models.FileField(blank=True, null=True)
     replaces = models.ForeignKey('self', blank=True, null=True, )
     name = models.CharField(max_length=100)
     created = models.DateTimeField(auto_now_add=True)
     current = models.BooleanField(default=True)
+    status = models.IntegerField(choices=STATUS, default=OPEN)
 
     objects = DocumentManager()
 
@@ -58,7 +65,7 @@ class Document(models.Model):
         if not self.pk:
             if self.current:
                 Document.objects.filter(Q(replaces=self.replaces) | Q(id=self.replaces_id)) \
-                                .update(current=False)
+                    .update(current=False)
             parse_file = True
         super(Document, self).save(*args, **kwargs)
 
@@ -68,7 +75,6 @@ class Document(models.Model):
     @property
     def url_id(self):
         return self.replaces_id or self.pk
-
 
     def create_colors(self, work_sheet):
         color_set = set()
@@ -132,17 +138,17 @@ class Document(models.Model):
                     row_span = start_cells[cell.coordinate].get('row_span', None)
                     column_span = start_cells[cell.coordinate].get('column_span', None)
                 cell_list.append(Cell(coordinate=cell.coordinate,
-                     value=cell.value or "",
-                     color_name=''.join(['color_', str(cell.fill.fgColor.value)]),
-                     row_span=row_span,
-                     column_span=column_span,
-                     document=self,
-                     horizontal_alignment=cell.style.alignment.horizontal,
-                    first_cell=first_cell,
-                    ))
+                                      value=cell.value or "",
+                                      color_name=''.join(['color_', str(cell.fill.fgColor.value)]),
+                                      row_span=row_span,
+                                      column_span=column_span,
+                                      document=self,
+                                      horizontal_alignment=cell.style.alignment.horizontal,
+                                      first_cell=first_cell,
+                                      ))
                 first_cell = False
-                logger.debug("created cell %s" %cell.coordinate)
-        cell_list[len(cell_list) - 1].last_cell=True
+                logger.debug("created cell %s" % cell.coordinate)
+        cell_list[len(cell_list) - 1].last_cell = True
         Cell.objects.bulk_create(cell_list)
 
 
@@ -183,4 +189,4 @@ class DocumentColors(models.Model):
     document = models.ForeignKey(Document)
 
     class Meta:
-        unique_together=(('name', 'document'), )
+        unique_together = (('name', 'document'),)

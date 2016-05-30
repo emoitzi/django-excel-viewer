@@ -15,7 +15,16 @@ Including another URLconf
 """
 from django.conf.urls import url, include
 from django.contrib import admin
+from django.contrib.staticfiles.urls import staticfiles_urlpatterns
 from django.http import HttpResponse
+
+from rest_framework import routers
+
+from frontend import views
+
+router = routers.DefaultRouter()
+router.register(r'change-request', views.ChangeRequestViewSet)
+
 
 urlpatterns = [
     url(r'^admin/', admin.site.urls),
@@ -23,4 +32,7 @@ urlpatterns = [
     url(r'^accounts/', include('allauth.urls')),
     url(r'^$', 'frontend.views.index'),
     url(r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", content_type="text/plain")),
+    url(r'^api/', include(router.urls)),
+    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
 ]
+urlpatterns += staticfiles_urlpatterns()

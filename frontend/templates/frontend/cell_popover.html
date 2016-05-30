@@ -1,0 +1,43 @@
+{% load i18n %}
+{% load tz %}
+<div>
+    {% if requests %}
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                {% trans "Change requests" %}
+            </div>
+            <div class="panel-body">
+                {% for request in requests %}
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% trans "Author:" %}{{ request.author }}
+                        </div>
+                        <div class="col-md-6">
+                            <p>{% trans "Value:" %}{{ request.new_value }}</p>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6">
+                            {% trans "Requested:" %}{{ request.created_on }}
+                        </div>
+                        {% if is_editor %}
+                            <div class="col-md-6">
+                                <button data-id="{{ request.id }}">{% trans "Accept" %}</button>
+                            </div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+    {% endif %}
+</div>
+<form class="request_form" action="/api/change-request/">
+    {% if is_editor %}
+
+    {% endif %}
+    <div>
+        <input name="new_value" type="text" required>
+        <input name="target_cell" type="hidden" value={{ cell_id }}>
+    </div>
+    <button type="submit">{% trans "Request change" %}</button>
+</form>

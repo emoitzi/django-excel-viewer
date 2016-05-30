@@ -53,6 +53,8 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.sites',
 
+    'debug_toolbar',
+    'rest_framework',
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
@@ -145,6 +147,24 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+LOGGING = {
+    'version': 1,
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'stream': sys.stdout,
+        }
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'INFO'
+    },
+    'django': {
+        'handlers': ['console'],
+        'level': 'INFO'
+    }
+}
+
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -164,6 +184,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
+STATICFILES_DIRS = ( os.path.join(BASE_DIR, 'static'), )
 STATIC_ROOT = os.path.join(WSGI_DIR, 'static')
 
 MEDIA_ROOT = os.path.join(DATA_DIR, 'media')
@@ -176,8 +197,8 @@ ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_ADAPTER = "users.adapter.SocialAccountAdapter"
 SOCIALACCOUNT_PROVIDERS = \
     {'facebook':
-       {'METHOD': 'js_sdk',
-        'SCOPE': ['email', 'public_profile', 'user_friends'],
+       {'METHOD': 'oauth2',
+        'SCOPE': ['email', 'public_profile', ],
         'FIELDS': [
             'id',
             'email',
@@ -191,3 +212,11 @@ SOCIALACCOUNT_PROVIDERS = \
         'VERSION': 'v2.4'}}
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+REST_FRAMEWORK = {
+    # Use Django's standard `django.contrib.auth` permissions,
+    # or allow read-only access for unauthenticated users.
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.DjangoModelPermissions'
+    ]
+}
