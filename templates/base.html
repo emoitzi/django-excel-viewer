@@ -1,15 +1,31 @@
-<!DOCTYPE html>
 {% load i18n %}
-<html lang="en">
+{% load static %}
+{% get_current_language as LANGUAGE_CODE %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE }}">
 <head>
     <meta charset="UTF-8">
-    <title>Excel Viewer</title>
+    <title>{% block title %}{% trans "Excel Viewer" %}{% endblock %}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     {% block head %}
+            <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css"
+          integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7"
+          crossorigin="anonymous">
+    <script
+          src="https://code.jquery.com/jquery-2.2.4.min.js"
+          integrity="sha256-BbhdlvQf/xTY9gja0Dq3HiwQF8LaCRTXxZKRutelT44="
+          crossorigin="anonymous"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js"
+            integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS"
+            crossorigin="anonymous"></script>
+    <script src="{% static "functions.js" %}"></script>
+    <link rel="stylesheet" href="{% static "style.css" %}">
     {% endblock head %}
 </head>
 <body>
-{% block content %}
-
-{% endblock content %}
+    <div class="container-fluid">
+    {% block content %}
+    {% endblock content %}
+    </div>
 </body>
 </html>

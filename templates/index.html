@@ -1,15 +1,28 @@
 {% extends "base.html" %}
 {% load i18n %}
 {% block content %}
-Welcome.<br>
-<div>
-    <a href="{% url 'account_logout' %}" >{% trans "Logout" %}</a>
-</div>
-<div>
-    <a href="{% url 'document:list' %}"> {% trans "List documents" %} </a>
-</div>
-<div>
-    <a href="{% url 'document:create' %}"> {% trans "Upload" %} </a>
-</div>
+    <h1>{% trans "Welcome" %}</h1>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h2 class="panel-title">{% trans "Menu" %}</h2>
+        </div>
+        <div class="panel-body">
+            <nav>
+                <ul class="nav nav-pill nav-stacked">
+                    <li role="presentation">
+                        <a href="{% url 'document:list' %}"> {% trans "List documents" %} </a>
+                    </li>
+                    <li>
+                        <a href="{% url 'document:create' %}"> {% trans "Upload" %} </a>
+                    </li>
+                    <div class="horizontal-spacer"></div>
+                    <li>
+                        <a href="{% url 'account_logout' %}" >{% trans "Logout" %}</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
 
 {% endblock content %}

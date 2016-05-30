@@ -44,7 +44,7 @@ def get_span(start, end):
 @login_required
 def list_documents(request):
     document_list = Document.objects.all_current()
-    paginator = Paginator(document_list, 25)
+    paginator = Paginator(document_list, 20)
 
     page = request.GET.get('page')
     try:
@@ -54,7 +54,13 @@ def list_documents(request):
     except EmptyPage:
         documents = paginator.page(paginator.num_pages)
 
-    return render(request, "frontend/document_list.html", {"documents": documents})
+    context = {
+        "previous": documents.previous_page_number() if documents.has_previous() else 1,
+        "next": documents.next_page_number() if documents.has_next() else 1,
+        "documents":documents,
+    }
+
+    return render(request, "frontend/document_list.html", context)
 
 
 class DocumentView(DetailView):

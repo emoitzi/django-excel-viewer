@@ -3,26 +3,30 @@
 {% block content %}
 
 <h1>{% trans "Document list" %}</h1>
-{% for document in documents %}
-    {# Each "contact" is a Contact model object. #}
-    <div>
-    <a href="{% url "document:document" document.url_id %}">{{ document.name}}</a>
-    </div>
-{% endfor %}
+<div class="list-group">
+    {% for document in documents %}
+        {# Each "contact" is a Contact model object. #}
+        <a class="list-group-item" href="{% url "document:document" document.url_id %}">
+            {{ document.name}}</a>
+    {% endfor %}
+</div>
 
 <div class="pagination">
-    <span class="step-links">
-        {% if documents.has_previous %}
-            <a href="?page={{ documents.previous_page_number }}">previous</a>
-        {% endif %}
+    <ul class="pager">
+        <li class="previous {% if not documents.has_previous %}disabled{% endif %}">
+            <a href="?page={{ previous }}">
+                <span aria-hidden="true">&larr;</span>{% trans "Previous" %}</a>
+        </li>
 
         <span class="current">
             Page {{ documents.number }} of {{ documents.paginator.num_pages }}.
         </span>
 
-        {% if documents.has_next %}
-            <a href="?page={{ documents.next_page_number }}">next</a>
-        {% endif %}
-    </span>
+        <li class="next {% if not documents.has_next %}disabled{% endif %}">
+            <a href="?page={{ next }}">
+                <span aria-hidden="true">&rarr;</span>{% trans "Next" %}
+            </a>
+        </li>
+    </ul>
 </div>
 {% endblock content %}
