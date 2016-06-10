@@ -25,6 +25,7 @@
                 {% if perms.excel_import.change_document %}
                     <li><a href="{% url "document:edit" document.url_id %}">{% trans "Edit" %}</a></li>
                 {% endif %}
+                <li><a href="{% url "document:download" document.url_id %}">{% trans "Download" %}</a></li>
                 <li><a href="{% url "document:list" %}">{% trans "Back" %}</a></li>
             </ul>
         </div>

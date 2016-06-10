@@ -1,7 +1,8 @@
+import urllib
+
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
-from django.forms import modelform_factory
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 from django.views.generic import DetailView
@@ -181,3 +182,21 @@ def popover(request, pk):
         "cell_id": pk,
     }
     return render(request, 'frontend/cell_popover.html', context)
+
+
+
+
+
+@login_required
+def download_document(request, pk):
+    try:
+        document = Document.objects.get(pk=pk)
+    except Document.DoesNotExist:
+        raise Http404
+
+    xlsx_bytes = document.create_xlsx()
+    response = HttpResponse(xlsx_bytes)
+    response["Content-Type"] = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    response["Content-Length"] = len(xlsx_bytes)
+    response['Content-Disposition'] = 'attachment; filename="%s.xlsx"' % document.name
+    return response

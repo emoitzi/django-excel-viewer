@@ -5,6 +5,7 @@ from django.utils.translation import ugettext_lazy as _
 
 from openpyxl import load_workbook
 from openpyxl.styles.colors import COLOR_INDEX
+from openpyxl.writer.excel import save_virtual_workbook
 
 
 import logging
@@ -75,6 +76,15 @@ class Document(models.Model):
 
         if parse_file:
             self.parse_file()
+
+    def create_xlsx(self):
+        workbook = load_workbook(self.file.path)
+        sheet_names = workbook.get_sheet_names()
+        work_sheet = workbook[sheet_names[0]]
+
+        for cell in self.cell_set.all():
+            work_sheet[cell.coordinate].value = cell.value
+        return save_virtual_workbook(workbook)
 
     @property
     def url_id(self):
