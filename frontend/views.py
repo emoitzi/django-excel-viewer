@@ -2,6 +2,7 @@ import urllib
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
+from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
@@ -93,22 +94,25 @@ document = login_required(DocumentView.as_view())
 
 class DocumentEdit(UpdateView):
     model = Document
-    fields = ['file']
-    success_url = '/'
+    fields = ['file', 'name', 'status']
     template_name = "frontend/document_form.html"
 
     def get_object(self, queryset=None):
         pk = self.kwargs.get(self.pk_url_kwarg, None)
         return Document.objects.get_current(pk)
 
+    def get_success_url(self):
+        return reverse("document:document", args=[self.object.pk])
+
     def form_valid(self, form):
         if 'file' in form.changed_data:
             # new file uploaded, copy current instance
-            document = self.object
+            document = form.instance
             document.replaces_id = document.pk
             document.pk = None
             document.created = None
-            document.save()
+            # document.save()
+        form.save()
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -117,9 +121,11 @@ edit_document = login_required(DocumentEdit.as_view())
 
 class DocumentCreate(CreateView):
     model = Document
-    fields = ['file', 'name']
-    success_url = '/'
+    fields = ['file', 'name', 'status']
     template_name = "frontend/document_form.html"
+
+    def get_success_url(self):
+        return reverse("document:document", args=[self.object.pk])
 
 
 create = login_required(DocumentCreate.as_view())

@@ -44,14 +44,19 @@ class FrontendTest(TestCase):
     def test_edit_document_creates_new_document(self):
         document = Document.objects.create(file=self.file, name="test")
 
-        self.client.post(reverse('document:edit', args=[document.pk]),  {'file': self.file})
+        response = self.client.post(reverse('document:edit', args=[document.pk]),  {'file': self.file,
+                                                                                    'name': 'Test',
+                                                                                    'status': Document.LOCKED})
+        self.assertEqual(302, response.status_code)
 
         with patch('excel_import.models.Document.parse_file') as parse_file:
             document.refresh_from_db()
             self.assertFalse(document.current)
             self.assertEqual(2, Document.objects.count())
             self.assertIsNone(document.replaces)
+            self.assertEqual(Document.OPEN, document.status)
 
             new_document = Document.objects.get(~Q(pk=document.pk))
             self.assertTrue(new_document.current)
             self.assertEqual(document.id, new_document.replaces_id)
+            self.assertEqual(Document.LOCKED, new_document.status)
