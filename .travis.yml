@@ -1,0 +1,20 @@
+language: python
+python:
+  -3.2
+
+services: postgresql
+
+env:
+ - OPENSHIFT_POSTGRESQL_DB_URL="postgres://postgres:@localhost"
+ - OPENSHIFT_APP_NAME="travisdb"
+ - DJANGO_SETTINGS_MODULE="excel_viewer.settings"
+ - PYTHONPATH="/home/travis/build/emoitzi/django-excel-viewer"
+
+install :
+  - pip install -r excel_viewer/requirements.txt
+
+before_script:
+  - psql -c "CREATE DATABASE travisdb;" -U  postgres
+script:
+  - python manage.py migrate
+  - python manage.py test
