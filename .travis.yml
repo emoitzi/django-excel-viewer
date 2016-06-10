@@ -5,10 +5,11 @@ python:
 services: postgresql
 
 env:
- - OPENSHIFT_POSTGRESQL_DB_URL="postgres://postgres:@localhost"
- - OPENSHIFT_APP_NAME="travisdb"
- - DJANGO_SETTINGS_MODULE="excel_viewer.settings"
- - PYTHONPATH="/home/travis/build/emoitzi/django-excel-viewer"
+  global:
+   - OPENSHIFT_POSTGRESQL_DB_URL="postgres://postgres:@localhost"
+   - OPENSHIFT_APP_NAME="travisdb"
+   - DJANGO_SETTINGS_MODULE="excel_viewer.settings"
+   - PYTHONPATH="/home/travis/build/emoitzi/django-excel-viewer"
 
 install :
   - pip install -r excel_viewer/requirements.txt
