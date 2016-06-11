@@ -34,10 +34,12 @@ var VIEWER = VIEWER || {};
         }
     };
     VIEWER.cells = {
+        current_cell: null,
         init: function () {
             var $cells = $('[data-toggle="popover"]');
             if ($cells.length > 0) {
-                $cells.on('click.popover', VIEWER.cells.addPopover);
+                $cells.on('click', VIEWER.cells.clickHandler);
+                // $cells.on('click.popover', VIEWER.cells.addPopover);
             }
             VIEWER.cells.initLabels();
 
@@ -58,7 +60,7 @@ var VIEWER = VIEWER || {};
             $forms.submit(function (e) {
                 e.preventDefault();
                 var $form = $(this);
-                var action_url = e.currentTarget.action;
+                var action_url = $form.data('action');
                 $.ajax({
                     url: action_url,
                     type: 'post',
@@ -80,39 +82,41 @@ var VIEWER = VIEWER || {};
                             }
                         }
                         $cell.popover('destroy');
-                        $cell.off('click.popover-toggle');
-                        $cell.on('click.popover', VIEWER.cells.addPopover);
-                        console.log("Form submit done")
+                        VIEWER.cells.current_cell = null;
                     })
             });
         },
-        addPopover: function () {
-            console.log("add popover");
-            var $cell = $(this);
-            $cell.off('click.popover');
+        addPopover: function ($cell) {
             $.ajax({
                 url: '/document/popover/' + $cell.attr('data-id') + '/'
             })
-                .fail(function () {
-                    $cell.one('click.popover')
-                })
             .done(function(data) {
                 console.log("ajax call done");
                 $cell.one('inserted.bs.popover', function() {
                     console.log("popover inserted in dom");
                     VIEWER.cells.setRequestSubmitHandler($cell);
-                    $cell.on('click.popover-toggle', VIEWER.cells.clickHandler);
                 });
                 $cell.popover({
                     html:true,
                     content:  data
                 });
+                VIEWER.cells.current_cell = $cell;
                 $cell.popover('show');
             });
 
         },
         clickHandler: function () {
-            $(this).popover('toggle')
+            var $cell = $(this);
+            if ($cell.is(VIEWER.cells.current_cell)) {
+                $(this).popover('toggle');
+            }
+            else {
+                if (VIEWER.cells.current_cell) {
+                    VIEWER.cells.current_cell.popover('destroy');
+                    VIEWER.cells.current_cell = null;
+                }
+                VIEWER.cells.addPopover($cell);
+            }
         }
     };
 
