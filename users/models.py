@@ -11,3 +11,8 @@ class AllowedGroup(models.Model):
     required = models.BooleanField(default=True)
 
     objects = GroupsManager()
+
+
+class AllowedDomain(models.Model):
+    domain = models.CharField(max_length=200)
+    required = models.BooleanField(default=True)
