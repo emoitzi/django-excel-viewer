@@ -28,13 +28,7 @@ SECRETS = secrets.getter(os.path.join(DATA_DIR, 'secrets.json'))
 
 SECRET_KEY = SECRETS['secret_key']
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/1.9/howto/deployment/checklist/
-
-# SECURITY WARNING: keep the secret key used in production secret!
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get('EXCEL_VIEWER_DEBUG', 'TRUE') == 'TRUE'
 
 from socket import gethostname
 ALLOWED_HOSTS = [
