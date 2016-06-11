@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load socialaccount %}
+{% block content %}
+    <h1>{% trans "My Account" %}</h1>
+    <div class="panel panel-default">
+        <div class="panel-heading">
+            <h1 class="panel-title">{% trans "Options" %}</h1>
+        </div>
+        <div class="panel-body">
+            <nav>
+                <ul class="nav nav-pill nav-stacked">
+                    <li role="presentation">
+                        <a href="{% url 'account_change_password' %}"> {% trans "Change password" %} </a>
+                    </li>
+                    {% if not has_facebook%}
+                    <li>
+                        <a href="{% provider_login_url "facebook" process="connect" %}">{% trans "Connect this account to my Facebook account"%}</a>
+                    </li>
+                    {% endif %}
+                    <div class="horizontal-spacer"></div>
+                    <li>
+                        <a href="{% url 'index' %}" >{% trans "Back to menu" %}</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+
+
+{% endblock content %}

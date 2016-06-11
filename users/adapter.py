@@ -1,6 +1,7 @@
 import requests
 import logging
 from django.conf import settings
+from django.core.urlresolvers import reverse
 from django.shortcuts import render
 
 from allauth.account.adapter import DefaultAccountAdapter
@@ -56,6 +57,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
     def pre_social_login(self, request, sociallogin):
         if not self.check_facebook_groups(sociallogin):
             raise ImmediateHttpResponse(render(request, "users/fb_group_required.html"))
+
+    def get_connect_redirect_url(self, request, socialaccount):
+        return reverse('user:settings')
 
 
 class AccountAdapter(DefaultAccountAdapter):

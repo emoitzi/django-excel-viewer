@@ -12,8 +12,13 @@
                     <li role="presentation">
                         <a href="{% url 'document:list' %}"> {% trans "List documents" %} </a>
                     </li>
+                    {% if perms.excel_import.add_document %}
+                        <li>
+                            <a href="{% url 'document:create' %}"> {% trans "Upload" %} </a>
+                        </li>
+                    {% endif %}
                     <li>
-                        <a href="{% url 'document:create' %}"> {% trans "Upload" %} </a>
+                        <a href="{% url 'user:settings' %}">{% trans "My Account" %}</a>
                     </li>
                     <div class="horizontal-spacer"></div>
                     <li>

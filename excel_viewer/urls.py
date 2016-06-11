@@ -30,9 +30,10 @@ urlpatterns = [
     url(r'^admin/', admin.site.urls),
     url(r'^document/', include('frontend.urls', namespace='document')),
     url(r'^accounts/', include('allauth.urls')),
-    url(r'^$', 'frontend.views.index'),
+    url(r'^$', 'frontend.views.index', name="index"),
     url(r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", content_type="text/plain")),
     url(r'^api/', include(router.urls)),
     url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^user/', include('users.urls', namespace='user')),
 ]
 urlpatterns += staticfiles_urlpatterns()
