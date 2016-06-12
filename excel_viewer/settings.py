@@ -250,3 +250,5 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.DjangoModelPermissions'
     ]
 }
+
+SHOW_TOOLBAR_CALLBACK = 'frontend.utils.show_debug_toolbar'
