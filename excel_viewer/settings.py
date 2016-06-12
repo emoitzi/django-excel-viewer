@@ -251,4 +251,7 @@ REST_FRAMEWORK = {
     ]
 }
 
-SHOW_TOOLBAR_CALLBACK = 'frontend.utils.show_debug_toolbar'
+DEBUG_TOOLBAR_PATCH_SETTINGS = True
+DEBUG_TOOLBAR_CONFIG = {
+    'SHOW_TOOLBAR_CALLBACK': 'frontend.utils.show_debug_toolbar',
+}
