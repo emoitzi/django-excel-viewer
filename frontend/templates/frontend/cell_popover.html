@@ -12,10 +12,12 @@
 
                         <div class="input-group">
                             <input type="text" class="form-control" readonly placeholder="{{ request.new_value }}">
-                            <span class="input-group-btn hidden-xs">
-                                <button class="btn btn-default" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
-                            </span>
-                            <button class="btn btn-default visible-xs" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                            {% if perms.frontend.change_changerequest%}
+                                <span class="input-group-btn hidden-xs">
+                                    <button class="btn btn-default" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                                </span>
+                                <button class="btn btn-default visible-xs" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                            {% endif %}
                         </div>
 {#                        <div class="col-md-6">#}
 {#                            {% trans "Author:" %}{{ request.author }}#}
