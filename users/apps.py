@@ -3,7 +3,7 @@ from django.db.models.signals import post_save
 from users.signals import add_to_user_group
 
 
-class RkCalendarConfig(AppConfig):
+class UserConfig(AppConfig):
     name = 'users'
 
     def ready(self):

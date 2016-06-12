@@ -124,19 +124,55 @@ else:
 
 LOGGING = {
     'version': 1,
+    'disable_existing_loggers': False,
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'DEBUG'
+    },
     'handlers': {
         'console': {
             'class': 'logging.StreamHandler',
-            'stream': sys.stdout,
+            # 'stream': sys.stdout,
+            'level': 'DEBUG',
+            'formatter': 'simple',
+        },
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(os.environ.get("OPENSHIFT_LOG_DIR", ""), "debug.log"),
+            'formatter': 'verbose',
+        },
+        'mail_admins': {
+            'level': 'ERROR',
+            'class': 'django.utils.log.AdminEmailHandler',
+            'include_html': True,
+        },
+    },
+    'formatters': {
+        'verbose': {
+            'format': '%(asctime)s %(levelname)s  %(name)s.%(funcName)s '
+                      '(%(lineno)d):'
+                      '%(message)s'
+        },
+        'simple': {
+            'format': '%(levelname)s %(name)s: %(message)s'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file', 'mail_admins'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'requests': {
+            'handlers': ['console', 'file', 'mail_admins'],
+            'level': 'WARNING',
+            'propagate': False,
+        },
+        '': {
+            'handlers': ['console', 'file', 'mail_admins'],
+            'level': 'DEBUG',
         }
-    },
-    'root': {
-        'handlers': ['console'],
-        'level': 'INFO'
-    },
-    'django': {
-        'handlers': ['console'],
-        'level': 'INFO'
     }
 }
 
@@ -171,10 +207,12 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL="http" if DEBUG else "https"
 
 ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.SignupForm'
 ACCOUNT_ADAPTER = "users.adapter.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "users.adapter.SocialAccountAdapter"
+
 
 
 SOCIALACCOUNT_PROVIDERS = \
@@ -194,6 +232,18 @@ SOCIALACCOUNT_PROVIDERS = \
         'VERSION': 'v2.4'}}
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
+if 'EXCEL_VIEWER_MAIL_URL' in os.environ:
+    url = urlparse(os.environ.get('EXCEL_VIEWER_MAIL_URL'))
+    EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+    EMAIL_HOST = url.hostname
+    EMAIL_PORT = url.port
+    EMAIL_HOST_USER = url.username
+    EMAIL_HOST_PASSWORD  = url.password
+    EMAIL_USE_TLS = True
+
+if 'EXCEL_VIEWER_DEFAULT_FROM_EMAIL' in os.environ:
+    DEFAULT_FROM_EMAIL = os.environ.get('EXCEL_VIEWER_DEFAULT_FROM_EMAIL')
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [

@@ -35,9 +35,14 @@
     {% if is_editor %}
 
     {% endif %}
-    <div>
-        <input name="new_value" type="text" required>
-        <input name="target_cell" type="hidden" value={{ cell_id }}>
+    <div class="form-group">
+        <div class="input-group">
+            <input name="new_value" placeholder="{% trans "New value" %}" class="form-control" aria-label="New value" type="text" required>
+            <input name="target_cell" type="hidden" value={{ cell_id }}>
+            <span class="input-group-btn">
+                <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-ok"></span></button>
+{#                {% trans "Request change" %}#}
+            </span>
+        </div>
     </div>
-    <button type="submit">{% trans "Request change" %}</button>
 </form>

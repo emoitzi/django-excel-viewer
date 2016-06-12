@@ -172,7 +172,7 @@ class Cell(models.Model):
     color_name = models.CharField(max_length=20)
     row_span = models.IntegerField(blank=True, null=True, validators=MinValueValidator(1))
     column_span = models.IntegerField(blank=True, null=True, validators=MinValueValidator(1))
-    document = models.ForeignKey(Document, null=True, blank=True)
+    document = models.ForeignKey(Document)
     horizontal_alignment = models.CharField(max_length=20, null=True, blank=True)
     first_cell = models.BooleanField(default=False)
     last_cell = models.BooleanField(default=False)

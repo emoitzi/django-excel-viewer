@@ -1,0 +1,8 @@
+{% load i18n %}{% load account %} {% user_display change_request.author as author%}{% blocktrans %}
+Hello,
+
+there is a new change request from user {{ author }}.
+
+Click here to see the document: {{ document_url }}
+{% endblocktrans %}
+
