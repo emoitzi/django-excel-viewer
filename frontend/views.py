@@ -1,4 +1,4 @@
-import urllib
+import logging
 
 from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
@@ -20,6 +20,7 @@ from excel_import.models import Document, Cell
 from frontend.models import ChangeRequest
 from frontend.serializers import ChangeRequestSerializer
 
+logger = logging.getLogger(__name__)
 
 def str_to_ord(string):
     if len(string) > 1:
@@ -81,10 +82,10 @@ class DocumentView(DetailView):
         context = super(DocumentView, self).get_context_data(**kwargs)
         context['cells'] = Cell.objects.filter(document=self.object)
 
-        pending_requests = ChangeRequest.objects.filter(target_cell__document=self.object, accepted_by__isnull=True)
+        pending_requests = ChangeRequest.objects.filter(target_cell__document=self.object, status=ChangeRequest.PENDING)
         context['pending_requests'] = [cell['target_cell_id'] for cell in pending_requests.values('target_cell_id')]
 
-        changes = ChangeRequest.objects.filter(target_cell__document=self.object, accepted_by__isnull=False)
+        changes = ChangeRequest.objects.filter(target_cell__document=self.object, status=ChangeRequest.ACCEPTED)
         context['changes'] = [cell['target_cell_id'] for cell in changes.values('target_cell_id')]
         return context
 
@@ -102,17 +103,34 @@ class DocumentEdit(UpdateView):
         return Document.objects.get_current(pk)
 
     def get_success_url(self):
-        return reverse("document:document", args=[self.object.pk])
+        id = self.object.replaces_id if self.object.replaces else self.object.pk
+        return reverse("document:document", args=[id])
 
     def form_valid(self, form):
+        copy_change_requests = False
+        document = None
         if 'file' in form.changed_data:
             # new file uploaded, copy current instance
             document = form.instance
-            document.replaces_id = document.pk
+            document.replaces_id = document.replaces_id or document.pk
             document.pk = None
             document.created = None
+            copy_change_requests = True
             # document.save()
         form.save()
+
+        if copy_change_requests:
+            requests = ChangeRequest.objects.filter(target_cell__document_id=document.replaces_id,
+                                                    status=ChangeRequest.PENDING)
+            for request in requests:
+                try:
+                    request.target_cell = document.cell_set.get(coordinate=request.target_cell.coordinate)
+                    request.save()
+                except Cell.DoesNotExist:
+                    logger.debug("Cannot find cell with coordinate %s in new document %s(%d)" \
+                                 %(request.target_cell.coordinate, document.name, document.pk))
+                    pass
+
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -150,8 +168,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
         target_cell = serializer.validated_data.get("target_cell")
         if target_cell.document.status == Document.OPEN:
             if not target_cell.changerequest_set.exists():
-                change_request.accepted_by = request.user
-                change_request.accepted_on = timezone.now()
+                change_request.accept(request.user, commit=False)
             else:
                 response_status = status.HTTP_202_ACCEPTED
             self.perform_create(serializer)
@@ -166,22 +183,22 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
 
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
-        if not instance.accepted_by and not instance.target_cell.document.status == Document.LOCKED:
+        data = None
+        if not instance.reviewed_by and not instance.target_cell.document.status == Document.LOCKED:
             instance.target_cell.value = instance.new_value
             instance.target_cell.save()
 
-            instance.accepted_by = request.user
-            instance.accepted_on = timezone.now()
-            instance.save()
+            instance.accept(request.user)
             response_status = status.HTTP_200_OK
+            data = {"new_value": instance.new_value }
         else:
             response_status = status.HTTP_403_FORBIDDEN
-        return Response(status=response_status)
+        return Response(status=response_status, data=data)
 
 
 def popover(request, pk):
 
-    requests = ChangeRequest.objects.filter(target_cell__id=pk, accepted_by__isnull=True)
+    requests = ChangeRequest.objects.filter(target_cell__id=pk, status=ChangeRequest.PENDING)
     context = {
         "requests": requests,
         "is_editor": request.user.groups.filter(name='editor').exists(),

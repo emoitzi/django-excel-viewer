@@ -34,3 +34,11 @@ a.facebook {
     border-bottom: 2px solid #EEE;
     text-align: center;
 }
+
+.bottom-margin {
+    margin-bottom: 15px;
+}
+
+.top-margin {
+    margin-top: 15px;
+}

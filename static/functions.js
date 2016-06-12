@@ -55,6 +55,26 @@ var VIEWER = VIEWER || {};
             $label.offset(position);
             $label.css('display', 'block');
         },
+        setAcceptRequestButtonHandlers: function ($cell) {
+          var $buttons = $('.pending-requests button').click(function() {
+              var $button = $(this);
+              var request_id = $button.data('request');
+              $.ajax({
+                  url: '/api/change-request/' + request_id + '/',
+                  type: 'put',
+                  dataType:'json'
+              })
+                  .success(function(data, textStatus, jqXHR) {
+                        VIEWER.cells.changeCellValue($cell, data.new_value);
+                        $cell.popover('destroy');
+                        VIEWER.cells.current_cell = null;
+                  })
+          })  
+        },
+        changeCellValue: function($cell, new_value) {
+            $cell.text(new_value)
+                 .addClass('changed');
+        },
         setRequestSubmitHandler: function($cell) {
             var $forms = $('.request_form');
             $forms.submit(function (e) {
@@ -69,9 +89,7 @@ var VIEWER = VIEWER || {};
                 })
                     .done(function (data, textStatus, jqXHR) {
                         if (jqXHR.status == 201) { // CREATED
-                            $cell.text(data.new_value)
-                                 .addClass('changed')
-
+                            VIEWER.cells.changeCellValue($cell, data.new_value);
                         }
                         if (jqXHR.status == 202) {  // ACCEPTED
                             var $labels = $cell.children(".request");
@@ -86,19 +104,24 @@ var VIEWER = VIEWER || {};
                     })
             });
         },
+        addPopoverEventHandlers: function($cell) {
+            VIEWER.cells.setRequestSubmitHandler($cell);
+            VIEWER.cells.setAcceptRequestButtonHandlers($cell);
+        },
         addPopover: function ($cell) {
             $.ajax({
                 url: '/document/popover/' + $cell.attr('data-id') + '/'
             })
             .done(function(data) {
-                console.log("ajax call done");
                 $cell.one('inserted.bs.popover', function() {
-                    console.log("popover inserted in dom");
-                    VIEWER.cells.setRequestSubmitHandler($cell);
+                    VIEWER.cells.addPopoverEventHandlers($cell)
+                    $('[name="new_value"]').focus()
                 });
                 $cell.popover({
                     html:true,
-                    content:  data
+                    content:  data,
+                    template: '<div class="popover" role="tooltip"><div class="arrow"></div><div class="popover-content"></div></div>'
+
                 });
                 VIEWER.cells.current_cell = $cell;
                 $cell.popover('show');
@@ -109,7 +132,8 @@ var VIEWER = VIEWER || {};
             var $cell = $(this);
             if ($cell.is(VIEWER.cells.current_cell)) {
                 $(this).popover('toggle');
-            }
+                $('[name="new_value"]').focus()
+ }
             else {
                 if (VIEWER.cells.current_cell) {
                     VIEWER.cells.current_cell.popover('destroy');

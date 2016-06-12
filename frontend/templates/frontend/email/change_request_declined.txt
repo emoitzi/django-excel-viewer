@@ -1,7 +1,7 @@
 {% load i18n %}{% load account %}{% user_display change_request.author as author%}{% user_display change_request.reviewed_by as reviewed_by %}{% blocktrans%}
 Hello {{ author }},
 
-your change request has been accepted by:  {{ reviewed_by }}.
+your change request has been declined by:  {{ reviewed_by }}.
 
 Click here to see the document: {{ document_url }}
 {% endblocktrans %}

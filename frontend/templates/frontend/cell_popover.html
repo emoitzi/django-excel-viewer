@@ -1,48 +1,57 @@
 {% load i18n %}
 {% load tz %}
-<div>
     {% if requests %}
-        <div class="panel panel-default">
-            <div class="panel-heading">
-                {% trans "Change requests" %}
-            </div>
-            <div class="panel-body">
+{#        <div class="panel panel-default">#}
+{#            <div class="panel-heading">#}
+{#                {% trans "Change requests" %}#}
+{#            </div>#}
+{#            <div class="panel-body">#}
+                <p class="text-left">{% trans "Requests" %}</p>
                 {% for request in requests %}
-                    <div class="row">
-                        <div class="col-md-6">
-                            {% trans "Author:" %}{{ request.author }}
+                    <div class="form-group pending-requests">
+
+                        <div class="input-group">
+                            <input type="text" class="form-control" readonly placeholder="{{ request.new_value }}">
+                            <span class="input-group-btn hidden-xs">
+                                <button class="btn btn-default" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                            </span>
+                            <button class="btn btn-default visible-xs" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
                         </div>
-                        <div class="col-md-6">
-                            <p>{% trans "Value:" %}{{ request.new_value }}</p>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            {% trans "Requested:" %}{{ request.created_on }}
-                        </div>
-                        {% if is_editor %}
-                            <div class="col-md-6">
-                                <button data-id="{{ request.id }}">{% trans "Accept" %}</button>
-                            </div>
-                        {% endif %}
+{#                        <div class="col-md-6">#}
+{#                            {% trans "Author:" %}{{ request.author }}#}
+{#                        </div>#}
+{#                        <div class="col-md-6">#}
+{#                            <p>{% trans "Value:" %}{{ request.new_value }}</p>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                    <div class="row">#}
+{#                        <div class="col-md-6">#}
+{#                            {% trans "Requested:" %}{{ request.created_on }}#}
+{#                        </div>#}
+{#                        {% if is_editor %}#}
+{#                            <div class="col-md-6">#}
+{#                                <button data-id="{{ request.id }}">{% trans "Accept" %}</button>#}
+{#                            </div>#}
+{#                        {% endif %}#}
                     </div>
                 {% endfor %}
-            </div>
-        </div>
+{#            </div>#}
+{#        </div>#}
+    <div class="horizontal-spacer"></div>
     {% endif %}
-</div>
 <form class="request_form" data-action="/api/change-request/">
     {% if is_editor %}
 
     {% endif %}
-    <div class="form-group">
+    <div class="form-group top-margin">
         <div class="input-group">
-            <input name="new_value" placeholder="{% trans "New value" %}" class="form-control" aria-label="New value" type="text" required>
+            <input name="new_value" placeholder="{% trans "New value" %}" class="form-control" aria-label="Enter new value" type="text" required>
             <input name="target_cell" type="hidden" value={{ cell_id }}>
-            <span class="input-group-btn">
+            <span class="input-group-btn hidden-xs">
                 <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-ok"></span></button>
 {#                {% trans "Request change" %}#}
             </span>
+                <button class="btn btn-default visible-xs" type="submit"><span class="glyphicon glyphicon-ok"></span></button>
         </div>
     </div>
 </form>
