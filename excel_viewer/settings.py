@@ -277,3 +277,5 @@ from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'
 }
+
+BROKER_URL = os.environ.get("EXCEL_VIEWER_CELERY_BROKER_URL", "redis://")

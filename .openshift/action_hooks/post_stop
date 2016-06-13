@@ -1,0 +1,8 @@
+#!/bin/bash
+cd "$OPENSHIFT_REPO_DIR"
+
+echo "Executing '$VIRTUAL_ENV/bin/activate'"
+source $VIRTUAL_ENV/bin/activate
+
+echo "Executing 'celery multi stop worker'"
+python celery multi stop worker

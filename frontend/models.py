@@ -1,5 +1,3 @@
-from curses.ascii import EM
-
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -12,6 +10,7 @@ from django.contrib.auth.models import User
 from django.db import transaction
 
 from excel_import.models import Cell
+from frontend.tasks import send_new_status_notification_mail, send_editor_mail
 
 
 class ChangeRequest(models.Model):
@@ -72,11 +71,11 @@ class ChangeRequest(models.Model):
                             declined_request.decline(self.reviewed_by)
 
         if send_mail:
-            self.send_editor_mail()
+            send_editor_mail.delay(self.pk)
 
         if not self.__original_status == self.status and \
                 not self.author == self.reviewed_by:
-            self.send_new_status_notification_mail()
+            send_new_status_notification_mail.delay(self.pk)
         self.__original_status = self.status
 
     def _review(self, reviewer, status, commit):

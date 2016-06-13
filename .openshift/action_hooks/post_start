@@ -1,0 +1,10 @@
+#!/bin/bash
+cd "$OPENSHIFT_REPO_DIR"
+
+echo "Executing: '$VIRTUAL_ENV/bin/activate'"
+source $VIRTUAL_ENV/bin/activate
+
+python --version
+
+echo "Executing 'python $VIRTUAL_ENV/bin/celery multi start worker -A excel_viewer --logfile="$OPENSHIFT_LOG_DIR/celery.log"'"
+python $VIRTUAL_ENV/bin/celery multi start worker -A excel_viewer --logfile="$OPENSHIFT_LOG_DIR/celery.log"

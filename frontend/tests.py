@@ -18,7 +18,9 @@ from excel_import.models import Document
 from frontend.models import ChangeRequest
 
 
-@override_settings(MEDIA_ROOT=tempfile.mkdtemp(), MAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp(),
+                   MAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+                   CELERY_ALWAYS_EAGER=True,)
 class FrontendTest(TestCase):
     _file = None
 
@@ -108,9 +110,8 @@ class FrontendTest(TestCase):
         self.assertIn(add_document, permissions)
         self.assertIn(change_document, permissions)
 
-
     @patch('excel_import.models.Document.parse_file')
-    def test_new_change_request_sends_mail_to_editors(self, parse_file):
+    def test_new_change_request_sends_mail_to_editors(self, parse_file,):
         editor = mommy.make(settings.AUTH_USER_MODEL, email="editor@test.com")
         editor_group, _ = Group.objects.get_or_create(name='editor')
         editor.groups.add(editor_group)
