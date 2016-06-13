@@ -5,7 +5,6 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse
 from django.shortcuts import render
-from django.utils import timezone
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.http import Http404

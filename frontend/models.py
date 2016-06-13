@@ -132,4 +132,4 @@ class ChangeRequest(models.Model):
         email = EmailMessage(subject,
                              body,
                              to=[self.author.email])
-        email.send()
+        email.send(fail_silently=True)
