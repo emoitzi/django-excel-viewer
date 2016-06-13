@@ -23,7 +23,7 @@ class FrontendTest(TestCase):
     _file = None
 
     def setUp(self):
-        User.objects.create_user(username='user', password='password')
+        User.objects.create_superuser(username='user', email="", password='password')
         self.client.login(username='user', password='password')
 
     @property

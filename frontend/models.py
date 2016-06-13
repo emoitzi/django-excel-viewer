@@ -65,14 +65,12 @@ class ChangeRequest(models.Model):
             # Decline all pending requests if one is accepted
             if not self.__original_status == self.status and \
                     self.status == ChangeRequest.ACCEPTED:
-                ChangeRequest.objects.filter(target_cell=self.target_cell, status=ChangeRequest.PENDING) \
-                            .update(status=ChangeRequest.DECLINED,
-                                    reviewed_by=self.reviewed_by,
-                                    reviewed_on=self.reviewed_on,
-                                    )
+                # Manually iterate over all pending requests an calls save to trigger notification mails.
+                # Note that this depends
+                for declined_request in ChangeRequest.objects.filter(target_cell=self.target_cell,
+                                                                     status=ChangeRequest.PENDING):
+                            declined_request.decline(self.reviewed_by)
 
-        # Send mails after call to super().save, so that mail
-        # errors do not abort the save process
         if send_mail:
             self.send_editor_mail()
 

@@ -1,9 +1,11 @@
 import logging
 
+from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.contrib.messages.views import SuccessMessageMixin
 from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
-from django.http import HttpResponseRedirect, HttpResponse
+from django.http import HttpResponseRedirect, HttpResponse, HttpResponseForbidden
 from django.shortcuts import render
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView
@@ -20,6 +22,7 @@ from frontend.models import ChangeRequest
 from frontend.serializers import ChangeRequestSerializer
 
 logger = logging.getLogger(__name__)
+
 
 def str_to_ord(string):
     if len(string) > 1:
@@ -43,6 +46,16 @@ def get_span(start, end):
     return column_span, row_span
 
 
+class PermissionRequiredMixin(object):
+    required_permission = None
+    
+    def dispatch(self, request, *args, **kwargs):
+        if not request.user.has_perm(self.required_permission):
+            return HttpResponseForbidden()
+        
+        return super(PermissionRequiredMixin, self).dispatch(request, *args, **kwargs)
+
+
 @login_required
 def list_documents(request):
     document_list = Document.objects.all_current()
@@ -59,7 +72,7 @@ def list_documents(request):
     context = {
         "previous": documents.previous_page_number() if documents.has_previous() else 1,
         "next": documents.next_page_number() if documents.has_next() else 1,
-        "documents":documents,
+        "documents": documents,
     }
 
     return render(request, "frontend/document_list.html", context)
@@ -89,14 +102,16 @@ class DocumentView(DetailView):
         return context
 
 
-document = login_required(DocumentView.as_view())
+document_view = login_required(DocumentView.as_view())
 
 
-class DocumentEdit(UpdateView):
+class DocumentEdit(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     model = Document
     fields = ['file', 'name', 'status']
     template_name = "frontend/document_form.html"
-
+    success_message = _("%(name)s was updated successfully")
+    required_permission = 'excel_import.change_document'
+    
     def get_object(self, queryset=None):
         pk = self.kwargs.get(self.pk_url_kwarg, None)
         return Document.objects.get_current(pk)
@@ -126,8 +141,8 @@ class DocumentEdit(UpdateView):
                     request.target_cell = document.cell_set.get(coordinate=request.target_cell.coordinate)
                     request.save()
                 except Cell.DoesNotExist:
-                    logger.debug("Cannot find cell with coordinate %s in new document %s(%d)" \
-                                 %(request.target_cell.coordinate, document.name, document.pk))
+                    logger.debug("Cannot find cell with coordinate %s in new document %s(%d)"
+                                 % (request.target_cell.coordinate, document.name, document.pk))
                     pass
 
         return HttpResponseRedirect(self.get_success_url())
@@ -136,10 +151,12 @@ class DocumentEdit(UpdateView):
 edit_document = login_required(DocumentEdit.as_view())
 
 
-class DocumentCreate(CreateView):
+class DocumentCreate(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     model = Document
     fields = ['file', 'name', 'status']
     template_name = "frontend/document_form.html"
+    success_message = _("%(name)s was created successfully")
+    required_permission = 'excel_import.add_document'
 
     def get_success_url(self):
         return reverse("document:document", args=[self.object.pk])
@@ -163,18 +180,33 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(data=request.data, instance=change_request)
         serializer.is_valid(raise_exception=True)
 
+        accepted_message = _("Your change request has been accepted. New value: \"%(new_value)s\"")
+        placed_message = _("Your change request has been placed and is waiting for review.")
+
         response_status = status.HTTP_201_CREATED
         target_cell = serializer.validated_data.get("target_cell")
         if target_cell.document.status == Document.OPEN:
             if not target_cell.changerequest_set.exists():
                 change_request.accept(request.user, commit=False)
+                messages.success(request._request, accepted_message %
+                                 {"new_value": serializer.validated_data.get("new_value")})
             else:
+                messages.info(request._request, placed_message)
                 response_status = status.HTTP_202_ACCEPTED
             self.perform_create(serializer)
+
         elif target_cell.document.status == Document.REQUEST_ONLY:
-            response_status = status.HTTP_202_ACCEPTED
+            if request.user.has_perm('frontend.change_changerequest'):
+                # Change requests from editors are accepted immediatly
+                change_request.accept(request.user, commit=False)
+                messages.success(request._request, accepted_message % 
+                                 {"new_value": serializer.validated_data.get("new_value")})
+            else:
+                messages.info(request._request, placed_message)
+                response_status = status.HTTP_202_ACCEPTED
             self.perform_create(serializer)
         else:
+            messages.error(request._request, _("We are sorry, this is not allowed on a locked document."))
             response_status = status.HTTP_403_FORBIDDEN
 
         headers = self.get_success_headers(serializer.data)
@@ -189,14 +221,16 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
 
             instance.accept(request.user)
             response_status = status.HTTP_200_OK
-            data = {"new_value": instance.new_value }
+            data = {"new_value": instance.new_value, }
+            messages.success(request._request, _("The change request \"%s\" has been accepted." % instance.new_value))
         else:
+            messages.error(request._request, _("You do not have the permission to accept requests."))
             response_status = status.HTTP_403_FORBIDDEN
         return Response(status=response_status, data=data)
 
 
+@login_required
 def popover(request, pk):
-
     requests = ChangeRequest.objects.filter(target_cell__id=pk, status=ChangeRequest.PENDING)
     context = {
         "requests": requests,
@@ -204,9 +238,6 @@ def popover(request, pk):
         "cell_id": pk,
     }
     return render(request, 'frontend/cell_popover.html', context)
-
-
-
 
 
 @login_required

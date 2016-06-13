@@ -42,3 +42,21 @@ a.facebook {
 .top-margin {
     margin-top: 15px;
 }
+
+.alert {
+    padding: 8px;
+    margin-bottom: 3px;
+}
+
+.alert-dismissible {
+    padding-right: 35px;
+}
+#messages{
+    position: fixed;
+    width: 80%;
+    align-self: center;
+    top: 55px;
+    left: 10%;
+    opacity: 0.9;
+    z-index: 1050;
+}
