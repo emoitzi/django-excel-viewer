@@ -70,7 +70,7 @@ MIDDLEWARE_CLASSES = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'frontend.middleware.AjaxMessaging'
+    'frontend.middleware.AjaxMessaging',
 ]
 
 ROOT_URLCONF = 'excel_viewer.urls'
@@ -270,7 +270,7 @@ DEBUG_TOOLBAR_PANELS = [
     'debug_toolbar.panels.signals.SignalsPanel',
     'debug_toolbar.panels.logging.LoggingPanel',
     'debug_toolbar.panels.redirects.RedirectsPanel',
-    'debug_toolbar.panels.profiling.ProfilingPanel'
+    # 'debug_toolbar.panels.profiling.ProfilingPanel'
 ]
 
 from django.contrib.messages import constants as messages

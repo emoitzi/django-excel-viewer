@@ -64,6 +64,9 @@ class Document(models.Model):
 
     objects = DocumentManager()
 
+    def __str__(self):
+        return self.name
+
     def save(self, *args, **kwargs):
         parse_file = False
         if not self.pk:
@@ -180,6 +183,9 @@ class Cell(models.Model):
     class Meta:
         ordering = ['id', ]
 
+    def __str__(self):
+        return '%s (%s)' % (self.coordinate, self.value)
+
     @property
     def attributes(self):
         attributes = str()
@@ -204,3 +210,6 @@ class DocumentColors(models.Model):
 
     class Meta:
         unique_together = (('name', 'document'),)
+
+    def __str__(self):
+        return "%s (%s)" % (self.name, self.color)
