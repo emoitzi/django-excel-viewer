@@ -59,6 +59,7 @@ var VIEWER = VIEWER || {};
             var $buttons = $('.pending-requests button').click(function () {
                 var $button = $(this);
                 var request_id = $button.data('request');
+                $("#popover").find("button").prop("disabled", true);
                 $.ajax({
                     url: '/api/change-request/' + request_id + '/',
                     type: 'put',
@@ -80,7 +81,7 @@ var VIEWER = VIEWER || {};
             $forms.submit(function (e) {
                 e.preventDefault();
                 var $form = $(this);
-                $form.find("button").prop("disabled", true);
+                $("#popover").find("button").prop("disabled", true);
                 var action_url = $form.data('action');
                 $.ajax({
                     url: action_url,
@@ -126,7 +127,7 @@ var VIEWER = VIEWER || {};
                     $cell.popover({
                         html: true,
                         content: data,
-                        template: '<div class="popover" role="tooltip"><div class="arrow"></div><div class="popover-content"></div></div>'
+                        template: '<div class="popover" role="tooltip"><div class="arrow"></div><div id="popover" class="popover-content"></div></div>'
 
                     });
                     VIEWER.cells.current_cell = $cell;
