@@ -1,58 +1,44 @@
 {% load i18n %}
 {% load tz %}
-    {% if requests %}
-{#        <div class="panel panel-default">#}
-{#            <div class="panel-heading">#}
-{#                {% trans "Change requests" %}#}
-{#            </div>#}
-{#            <div class="panel-body">#}
-                <p class="text-left">{% trans "Requests" %}</p>
-                {% for request in requests %}
-                    <div class="form-group pending-requests">
+{% load account %}
+{% if requests %}
 
-                        <div class="input-group">
-                            <input type="text" class="form-control" readonly placeholder="{{ request.new_value }}">
-                            {% if perms.frontend.change_changerequest%}
-                                <span class="input-group-btn hidden-xs">
-                                    <button class="btn btn-default" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
-                                </span>
-                                <button class="btn btn-default visible-xs" type="button" data-request="{{ request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
-                            {% endif %}
-                        </div>
-{#                        <div class="col-md-6">#}
-{#                            {% trans "Author:" %}{{ request.author }}#}
-{#                        </div>#}
-{#                        <div class="col-md-6">#}
-{#                            <p>{% trans "Value:" %}{{ request.new_value }}</p>#}
-{#                        </div>#}
-{#                    </div>#}
-{#                    <div class="row">#}
-{#                        <div class="col-md-6">#}
-{#                            {% trans "Requested:" %}{{ request.created_on }}#}
-{#                        </div>#}
-{#                        {% if is_editor %}#}
-{#                            <div class="col-md-6">#}
-{#                                <button data-id="{{ request.id }}">{% trans "Accept" %}</button>#}
-{#                            </div>#}
-{#                        {% endif %}#}
-                    </div>
-                {% endfor %}
-{#            </div>#}
-{#        </div>#}
+    <p class="text-left">{% trans "Requests" %}</p>
+    {% for change_request in requests %}
+        <div class="form-group pending-requests">
+
+            <div class="input-group">
+                <input type="text" class="form-control" readonly placeholder="{{ change_request.new_value }}">
+                {% if perms.frontend.change_changerequest%}
+                    <span class="input-group-btn hidden-xs">
+                        <button class="btn btn-default" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                    </span>
+                    <button class="btn btn-default visible-xs" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                {% endif %}
+            </div>
+            <span class="request-info">
+                {% user_display change_request.author as author%}
+                {% blocktrans with date=change_request.created_on|date:"SHORT_DATE_FORMAT" time=change_request.created_on|time:"H.i" %}
+                    by {{ author }} on {{ date }} {{ time }}
+                {% endblocktrans %}
+            </span>
+
+        </div>
+    {% endfor %}
     <div class="horizontal-spacer"></div>
-    {% endif %}
+{% endif %}
 <form class="request_form" data-action="/api/change-request/">
-    {% if is_editor %}
-
-    {% endif %}
     <div class="form-group top-margin">
+        <p class="text-left">{% trans "New request" %}</p>
         <div class="input-group">
-            <input name="new_value" placeholder="{% trans "New value" %}" class="form-control" aria-label="Enter new value" type="text" required>
+            <input id="new_value" autocomplete="off" name="new_value" value="{% user_display request.user %}"
+                   class="form-control" aria-label="Enter new value" type="text" required>
             <input name="target_cell" type="hidden" value={{ cell_id }}>
             <span class="input-group-btn hidden-xs">
                 <button class="btn btn-default" type="submit"><span class="glyphicon glyphicon-ok"></span></button>
-{#                {% trans "Request change" %}#}
+    {#                {% trans "Request change" %}#}
             </span>
+
                 <button class="btn btn-default visible-xs" type="submit"><span class="glyphicon glyphicon-ok"></span></button>
         </div>
     </div>

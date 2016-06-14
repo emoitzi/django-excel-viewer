@@ -111,22 +111,26 @@ var VIEWER = VIEWER || {};
         addPopoverEventHandlers: function ($cell) {
             VIEWER.cells.setRequestSubmitHandler($cell);
             VIEWER.cells.setAcceptRequestButtonHandlers($cell);
+            // $('#new_value').click(function (e) {
+            //     e.preventDefault();
+            //     $(this).removeAttr("readonly");
+            // }).keydown(function(e) {
+            //     $(this).removeAttr("readonly");
+            // })
         },
         addPopover: function ($cell) {
-            console.log("addPopover");
             $.ajax({
                 url: '/document/popover/' + $cell.attr('data-id') + '/'
             })
                 .done(function (data) {
-                    console.log("addPopover ajax done");
                     $cell.on('inserted.bs.popover', function () {
-                        console.log("inserted event handler");
                         VIEWER.cells.addPopoverEventHandlers($cell);
-                        $('[name="new_value"]').focus()
+                        VIEWER.cells.focusNewValue();
                     });
                     $cell.popover({
                         html: true,
                         content: data,
+                        placement: 'auto right',
                         template: '<div class="popover" role="tooltip"><div class="arrow"></div><div id="popover" class="popover-content"></div></div>'
 
                     });
@@ -135,16 +139,25 @@ var VIEWER = VIEWER || {};
                 });
 
         },
+        focusNewValue: function() {
+            var isMobile = window.matchMedia("only screen and (max-width: 768px)");
+            if (!isMobile.matches) {
+                $('#new_value').focus().select();
+            }
+            else {
+                $('#new_value').one('click', function() {
+                    $(this).select();
+                })
+            }
+        },
         clickHandler: function () {
             var $cell = $(this);
             if ($cell.is(VIEWER.cells.current_cell)) {
                 $(this).popover('toggle');
-                console.log("toggle");
-                $('[name="new_value"]').focus()
+                VIEWER.cells.focusNewValue();
             }
             else {
                 if (VIEWER.cells.current_cell) {
-                    console.log("destroy");
                     VIEWER.cells.current_cell.popover('destroy');
                     VIEWER.cells.current_cell = null;
                 }

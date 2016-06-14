@@ -62,6 +62,7 @@ INSTALLED_APPS = [
 SITE_ID = 1
 MIDDLEWARE_CLASSES = [
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.locale.LocaleMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -71,6 +72,7 @@ MIDDLEWARE_CLASSES = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'frontend.middleware.AjaxMessaging',
+    'users.middleware.TimezoneMiddleware',
 ]
 
 ROOT_URLCONF = 'excel_viewer.urls'
@@ -214,7 +216,7 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL="http" if DEBUG else "https"
 ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.SignupForm'
 ACCOUNT_ADAPTER = "users.adapter.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "users.adapter.SocialAccountAdapter"
-
+ACCOUNT_USER_DISPLAY = "users.utils.get_username"
 
 
 SOCIALACCOUNT_PROVIDERS = \
