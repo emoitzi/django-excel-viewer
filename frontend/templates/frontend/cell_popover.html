@@ -11,9 +11,14 @@
                 <input type="text" class="form-control" readonly placeholder="{{ change_request.new_value }}">
                 {% if perms.frontend.change_changerequest%}
                     <span class="input-group-btn hidden-xs">
-                        <button class="btn btn-default" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                        <button class="accept btn btn-default" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
                     </span>
-                    <button class="btn btn-default visible-xs" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                    <button class="accept btn btn-default visible-xs" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-ok"></span></button>
+                {% elif change_request.author == request.user%}
+                    <span class="input-group-btn hidden-xs">
+                        <button class="revoke btn btn-default" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-trash"></span></button>
+                    </span>
+                    <button class="revoke btn btn-default visible-xs" type="button" data-request="{{ change_request.id }}"><span class="glyphicon glyphicon-trash"></span></button>
                 {% endif %}
             </div>
             <span class="request-info">
@@ -26,6 +31,12 @@
         </div>
     {% endfor %}
     <div class="horizontal-spacer"></div>
+{% endif %}
+{% if can_delete %}
+<form class="delete-form" data-action="/api/change-request/{{ request_id }}/">
+    <button class="btn btn-default" type="submit">{% trans "Delete entry" %}</button>
+    <div class="horizontal-spacer top-margin"></div>
+</form>
 {% endif %}
 <form class="request_form" data-action="/api/change-request/">
     <div class="form-group top-margin">

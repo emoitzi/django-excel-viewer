@@ -10,11 +10,11 @@ from django.core import mail
 from django.db.models import Q
 from django.conf import settings
 from django.test import TestCase, override_settings
-from django.utils import timezone
+from rest_framework import status
 
 from model_mommy import mommy
 
-from excel_import.models import Document
+from excel_import.models import Document, Cell
 from frontend.models import ChangeRequest
 
 
@@ -25,7 +25,7 @@ class FrontendTest(TestCase):
     _file = None
 
     def setUp(self):
-        User.objects.create_superuser(username='user', email="", password='password')
+        self.user = User.objects.create_user(username='user', email="", password='password')
         self.client.login(username='user', password='password')
 
     @property
@@ -53,6 +53,7 @@ class FrontendTest(TestCase):
     def test_edit_document_creates_new_document(self, parse_file):
         document = Document.objects.create(file=self.file, name="Test")
         parse_file.reset_mock()
+        self.user.groups.add(Group.objects.get(name='editor'))
 
         response = self.client.post(reverse('document:edit', args=[document.pk]),  {'file': self.file,
                                                                                     'name': 'Test',
@@ -75,6 +76,7 @@ class FrontendTest(TestCase):
         document = Document.objects.create(file=self.file, name="Test", current=False)
         document2 = Document.objects.create(file=self.file, name="Test", current=True, replaces=document)
         parse_file.reset_mock()
+        self.user.groups.add(Group.objects.get(name='editor'))
 
         response = self.client.post(reverse('document:edit', args=[document.pk]),  {'file': self.file,
                                                                                     'name': 'Test',
@@ -91,9 +93,11 @@ class FrontendTest(TestCase):
 
     def test_user_group_has_change_permission_after_migrate(self):
         user_group = Group.objects.get(name='user')
-        permission = Permission.objects.get(codename="add_changerequest", content_type__app_label="frontend")
+        add_change = Permission.objects.get(codename="add_changerequest", content_type__app_label="frontend")
+        delete_change = Permission.objects.get(codename="delete_changerequest", content_type__app_label="frontend")
 
-        self.assertIn(permission, user_group.permissions.all())
+        self.assertIn(add_change, user_group.permissions.all())
+        self.assertIn(delete_change, user_group.permissions.all())
         self.assertTrue(user_group)
 
     def test_editor_group_has_permissions_after_migrate(self):
@@ -138,7 +142,7 @@ class FrontendTest(TestCase):
         document = Document.objects.create(file=self.file, name="Test", status=Document.REQUEST_ONLY)
         cell = document.cell_set.get(coordinate='A2')
         author = mommy.make(settings.AUTH_USER_MODEL)
-
+        self.user.groups.add(Group.objects.get(name='editor'))
         change_request = ChangeRequest.objects.create(author=author, new_value="test", target_cell=cell)
 
         response = self.client.post(reverse('document:edit', args=[document.pk]), {'file': self.file,
@@ -153,3 +157,325 @@ class FrontendTest(TestCase):
         new_cell = new_document.cell_set.get(coordinate='A2')
 
         self.assertEqual(change_request.target_cell, new_cell)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_request_on_open_document(self, parse_file):
+        cell = mommy.make(Cell, document__status=Document.OPEN, value="test")
+
+        response = self.client.post("/api/change-request/", {"new_value": "new-value",
+                                                             "target_cell": cell.id})
+
+        cell.refresh_from_db()
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual("new-value", cell.value)
+
+        self.assertEqual(1, ChangeRequest.objects.count())
+
+        change_request = ChangeRequest.objects.first()
+        self.assertEqual(self.user, change_request.reviewed_by)
+        self.assertIsNotNone(change_request.reviewed_on)
+        self.assertEqual("test", change_request.old_value)
+        self.assertEqual("new-value", change_request.new_value)
+        self.assertEqual(ChangeRequest.ACCEPTED, change_request.status)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_second_request_on_open_document(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             target_cell__document__status=Document.OPEN,
+                             status=ChangeRequest.ACCEPTED,
+                             target_cell__value="test",
+                             old_value="original_value")
+
+        cell = request.target_cell
+        response = self.client.post("/api/change-request/", {"new_value": "new-value",
+                                                            "target_cell": cell.id})
+
+        cell.refresh_from_db()
+        self.assertEqual(status.HTTP_202_ACCEPTED, response.status_code)
+        self.assertEqual("test", cell.value)
+
+        self.assertEqual(2, ChangeRequest.objects.count())
+
+        change_request = ChangeRequest.objects.get(status=ChangeRequest.PENDING)
+        self.assertIsNone(change_request.reviewed_by)
+        self.assertIsNone(change_request.reviewed_on)
+        self.assertEqual("test", change_request.old_value)
+        self.assertEqual("new-value", change_request.new_value)
+        self.assertEqual("test", cell.value)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_delete_accepted_request_on_open_document(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             author=self.user,
+                             reviewed_by=self.user,
+                             target_cell__document__status=Document.OPEN,
+                             status=ChangeRequest.ACCEPTED,
+                             target_cell__value="new-value",
+                             old_value="old-value")
+
+        response = self.client.delete("/api/change-request/" + str(request.id) + '/')
+
+        request.refresh_from_db()
+        cell = Cell.objects.get(pk=request.target_cell_id)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+
+        self.assertEqual("old-value", cell.value)
+        self.assertEqual(ChangeRequest.REVOKED, request.status)
+        self.assertEqual(self.user, request.reviewed_by)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_cannot_delete_accepted_request_from_other_user_on_open_document(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             reviewed_by=self.user,
+                             target_cell__document__status=Document.OPEN,
+                             status=ChangeRequest.ACCEPTED,
+                             target_cell__value="new-value",
+                             old_value="old-value")
+
+        response = self.client.delete("/api/change-request/" + str(request.id) + '/')
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_delete_accepted_request_after_later_request_is_accepted_on_open_document(self, parse_file):
+        first_request = mommy.make(ChangeRequest,
+                                   author=self.user,
+                                   reviewed_by=self.user,
+                                   target_cell__document__status=Document.OPEN,
+                                   status=ChangeRequest.ACCEPTED,
+                                   target_cell__value="new-value",
+                                   old_value="old-value")
+        second_request = mommy.make(ChangeRequest,
+                                    target_cell=first_request.target_cell,
+                                    status=ChangeRequest.ACCEPTED)
+
+        response = self.client.delete("/api/change-request/" + str(first_request.id) + '/')
+
+        first_request.refresh_from_db()
+        second_request.refresh_from_db()
+
+        cell = first_request.target_cell
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+        self.assertEqual(ChangeRequest.ACCEPTED, first_request.status)
+        self.assertEqual("new-value", cell.value)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_request_on_request_only_document(self, parse_file):
+        cell = mommy.make(Cell, document__status=Document.REQUEST_ONLY, value="test")
+
+        response = self.client.post('/api/change-request/', {"new_value": "new-value",
+                                                             "target_cell": cell.id})
+
+        cell.refresh_from_db()
+        request = ChangeRequest.objects.first()
+
+        self.assertEqual(status.HTTP_202_ACCEPTED, response.status_code)
+        self.assertEqual(1, ChangeRequest.objects.count())
+        self.assertEqual("test", cell.value)
+        self.assertEqual("test", request.old_value)
+        self.assertEqual("new-value", request.new_value)
+        self.assertIsNone(request.reviewed_by)
+        self.assertIsNone(request.reviewed_on)
+        self.assertEqual(ChangeRequest.PENDING, request.status)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_revoke_pending_request(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             status=ChangeRequest.PENDING,
+                             author=self.user)
+
+        response = self.client.delete('/api/change-request/' + str(request.id) + '/')
+
+        request.refresh_from_db()
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual(ChangeRequest.REVOKED, request.status)
+        self.assertEqual(self.user, request.reviewed_by)
+        self.assertIsNotNone(request.reviewed_on)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_cannot_revoke_pending_request_of_other_user(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             status=ChangeRequest.PENDING,)
+
+        response = self.client.delete('/api/change-request/' + str(request.id) + '/')
+
+        request.refresh_from_db()
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_cannot_revoke_accepted_request(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             status=ChangeRequest.ACCEPTED,
+                             target_cell__document__status=Document.REQUEST_ONLY,
+                             author=self.user)
+
+        response = self.client.delete('/api/change-request/' + str(request.id) + '/')
+
+        request.refresh_from_db()
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_accept_request_with_revoked_requests_on_open_document(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             status=ChangeRequest.REVOKED,
+                             target_cell__value="test",)
+        cell = request.target_cell
+
+        response = self.client.post("/api/change-request/", {"new_value": "new-value",
+                                                             "target_cell": cell.id})
+
+        cell.refresh_from_db()
+        self.assertEqual(status.HTTP_201_CREATED, response.status_code)
+        self.assertEqual("new-value", cell.value)
+
+        self.assertEqual(2, ChangeRequest.objects.count())
+
+        change_request = ChangeRequest.objects.get(~Q(id=request.id))
+        self.assertEqual(self.user, change_request.reviewed_by)
+        self.assertIsNotNone(change_request.reviewed_on)
+        self.assertEqual("test", change_request.old_value)
+        self.assertEqual("new-value", change_request.new_value)
+        self.assertEqual(ChangeRequest.ACCEPTED, change_request.status)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_editor_can_accept_request(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             status=ChangeRequest.PENDING,
+                             target_cell__value="old_value",
+                             new_value="new_value",)
+        self.user.groups.add(Group.objects.get(name='editor'))
+
+        response = self.client.put('/api/change-request/' + str(request.id) + '/')
+
+        request.refresh_from_db()
+        cell = Cell.objects.get(id=request.target_cell.id)
+        self.assertEqual(status.HTTP_200_OK, response.status_code)
+        self.assertEqual("new_value", cell.value)
+        self.assertEqual(ChangeRequest.ACCEPTED, request.status)
+        self.assertEqual("old_value", request.old_value)
+        self.assertEqual(self.user, request.reviewed_by)
+        self.assertIsNotNone(request.reviewed_on)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_editor_cannot_accept_revoked_request(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             status=ChangeRequest.REVOKED,
+                             target_cell__document__status=Document.REQUEST_ONLY,
+                             target_cell__value="old_value",
+                             new_value="new_value", )
+        self.user.groups.add(Group.objects.get(name='editor'))
+
+        response = self.client.put('/api/change-request/' + str(request.id) + '/')
+
+        request.refresh_from_db()
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_normal_user_cannot_accept_request(self, parse_file):
+        request = mommy.make(ChangeRequest,
+                             status=ChangeRequest.PENDING,
+                             target_cell__document__status=Document.REQUEST_ONLY,
+                             target_cell__value="old_value",
+                             new_value="new_value", )
+
+        response = self.client.put('/api/change-request/' + str(request.id) + '/')
+
+        self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
+
+
+@override_settings(MEDIA_ROOT=tempfile.mkdtemp(),
+                   MAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
+                   CELERY_ALWAYS_EAGER=True, )
+class ChangeRequestModelTests(TestCase):
+
+    def test_accept(self):
+        with patch('excel_import.models.Document.parse_file'):
+            cell = mommy.make(Cell)
+        author = mommy.make(settings.AUTH_USER_MODEL)
+        request = mommy.prepare(ChangeRequest,
+                                target_cell=cell,
+                                author=author)
+        reviewer = mommy.make(User)
+        request.accept(reviewer)
+
+        self.assertIsNotNone(request.id)
+        self.assertEqual(ChangeRequest.ACCEPTED, request.status)
+        self.assertIsNotNone(request.reviewed_on)
+        self.assertEqual(reviewer, request.reviewed_by)
+
+    def test_decline(self):
+        with patch('excel_import.models.Document.parse_file'):
+            cell = mommy.make(Cell)
+        author = mommy.make(settings.AUTH_USER_MODEL)
+        request = mommy.prepare(ChangeRequest,
+                                target_cell=cell,
+                                author=author)
+        reviewer = mommy.make(User)
+        request.decline(reviewer)
+
+        self.assertIsNotNone(request.id)
+        self.assertEqual(ChangeRequest.DECLINED, request.status)
+        self.assertIsNotNone(request.reviewed_on)
+        self.assertEqual(reviewer, request.reviewed_by)
+
+    def test_revoke(self):
+        with patch('excel_import.models.Document.parse_file'):
+            cell = mommy.make(Cell)
+        author = mommy.make(settings.AUTH_USER_MODEL)
+        request = mommy.prepare(ChangeRequest,
+                                target_cell=cell,
+                                author=author)
+        reviewer = mommy.make(User)
+        request.revoke()
+
+        self.assertIsNotNone(request.id)
+        self.assertEqual(ChangeRequest.REVOKED, request.status)
+        self.assertIsNotNone(request.reviewed_on)
+        self.assertEqual(author, request.reviewed_by)
+
+    def test_accept_declines_other_requests(self):
+        with patch('excel_import.models.Document.parse_file'):
+            cell = mommy.make(Cell)
+        author = mommy.make(settings.AUTH_USER_MODEL)
+        request1 = mommy.make(ChangeRequest,
+                                 target_cell=cell,
+                                 author=author,
+                                 status=ChangeRequest.PENDING)
+        request2 = mommy.make(ChangeRequest,
+                              target_cell=request1.target_cell,
+                              status=ChangeRequest.PENDING)
+        reviewer = mommy.make(User)
+
+        request2.accept(reviewer)
+
+        request1.refresh_from_db()
+        self.assertEqual(ChangeRequest.DECLINED, request1.status)
+        self.assertEqual(reviewer, request1.reviewed_by)
+        self.assertIsNotNone(request1.reviewed_on)
+
+    def test_save_sets_old_value_if_empty(self):
+        with patch('excel_import.models.Document.parse_file'):
+            cell = mommy.make(Cell,
+                              value="test")
+        author = mommy.make(settings.AUTH_USER_MODEL)
+        request = mommy.prepare(ChangeRequest,
+                                target_cell=cell,
+                                author=author,
+                                new_value="new_value")
+
+        request.save()
+
+        self.assertEqual("test", request.old_value)
+
+    def test_save_does_not_set_old_value_when_present(self):
+        with patch('excel_import.models.Document.parse_file'):
+            cell = mommy.make(Cell, value="cell_value")
+        author = mommy.make(settings.AUTH_USER_MODEL)
+        request = mommy.prepare(ChangeRequest,
+                                target_cell=cell,
+                                author=author,
+                                old_value="old_value")
+
+        request.save()
+
+        self.assertEqual("old_value", request.old_value)

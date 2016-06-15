@@ -48,11 +48,11 @@ def get_span(start, end):
 
 class PermissionRequiredMixin(object):
     required_permission = None
-    
+
     def dispatch(self, request, *args, **kwargs):
         if not request.user.has_perm(self.required_permission):
             return HttpResponseForbidden()
-        
+
         return super(PermissionRequiredMixin, self).dispatch(request, *args, **kwargs)
 
 
@@ -111,7 +111,7 @@ class DocumentEdit(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
     template_name = "frontend/document_form.html"
     success_message = _("%(name)s was updated successfully")
     required_permission = 'excel_import.change_document'
-    
+
     def get_object(self, queryset=None):
         pk = self.kwargs.get(self.pk_url_kwarg, None)
         return Document.objects.get_current(pk)
@@ -185,26 +185,27 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
 
         response_status = status.HTTP_201_CREATED
         target_cell = serializer.validated_data.get("target_cell")
+        # change_request.target_cell = target_cell
         if target_cell.document.status == Document.OPEN:
-            if not target_cell.changerequest_set.exists():
-                change_request.accept(request.user, commit=False)
+            self.perform_create(serializer)
+            if not target_cell.changerequest_set.filter(status=ChangeRequest.ACCEPTED).exists():
+                change_request.accept(request.user)
                 messages.success(request._request, accepted_message %
                                  {"new_value": serializer.validated_data.get("new_value")})
             else:
                 messages.info(request._request, placed_message)
                 response_status = status.HTTP_202_ACCEPTED
-            self.perform_create(serializer)
 
         elif target_cell.document.status == Document.REQUEST_ONLY:
+            self.perform_create(serializer)
             if request.user.has_perm('frontend.change_changerequest'):
                 # Change requests from editors are accepted immediatly
-                change_request.accept(request.user, commit=False)
-                messages.success(request._request, accepted_message % 
+                change_request.accept(request.user)
+                messages.success(request._request, accepted_message %
                                  {"new_value": serializer.validated_data.get("new_value")})
             else:
                 messages.info(request._request, placed_message)
                 response_status = status.HTTP_202_ACCEPTED
-            self.perform_create(serializer)
         else:
             messages.error(request._request, _("We are sorry, this is not allowed on a locked document."))
             response_status = status.HTTP_403_FORBIDDEN
@@ -215,10 +216,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
     def update(self, request, *args, **kwargs):
         instance = self.get_object()
         data = None
-        if not instance.reviewed_by and not instance.target_cell.document.status == Document.LOCKED:
-            instance.target_cell.value = instance.new_value
-            instance.target_cell.save()
-
+        if instance.status == ChangeRequest.PENDING and not instance.target_cell.document.status == Document.LOCKED:
             instance.accept(request.user)
             response_status = status.HTTP_200_OK
             data = {"new_value": instance.new_value, }
@@ -228,15 +226,49 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             response_status = status.HTTP_403_FORBIDDEN
         return Response(status=response_status, data=data)
 
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        if instance.author == request.user and \
+                (instance.status == ChangeRequest.PENDING or
+                    (ChangeRequest.objects.filter(target_cell=instance.target_cell,
+                                                   status=ChangeRequest.ACCEPTED).latest('created_on') ==
+                        instance and instance.target_cell.document.status == Document.OPEN)):
+            instance.revoke()
+            messages.success(request._request, _("Removed successfully."))
+
+            other_requests = ChangeRequest.objects.filter(target_cell=instance.target_cell,
+                                                          status=ChangeRequest.PENDING).exists()
+            return Response(status=status.HTTP_200_OK, data={'old_value': instance.old_value,
+                                                             'other_requests': other_requests})
+        else:
+            messages.error(request._request, _("You cannot withdraw this request."))
+            return Response(status=status.HTTP_403_FORBIDDEN)
+
 
 @login_required
 def popover(request, pk):
     requests = ChangeRequest.objects.filter(target_cell__id=pk, status=ChangeRequest.PENDING)
+
     context = {
         "requests": requests,
         "is_editor": request.user.groups.filter(name='editor').exists(),
         "cell_id": pk,
+        "can_delete": False,
     }
+
+    try:
+        last_request = ChangeRequest.objects.filter(target_cell_id=pk, target_cell__document__status=Document.OPEN,
+                                                    status=ChangeRequest.ACCEPTED).latest("reviewed_on")
+        if last_request.author == request.user:
+            context.update({
+                "can_delete": True,
+                "request_id": last_request.pk
+            })
+
+    except ChangeRequest.DoesNotExist:
+        pass
+
     return render(request, 'frontend/cell_popover.html', context)
 
 

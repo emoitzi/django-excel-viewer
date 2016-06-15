@@ -17,6 +17,7 @@ class ChangeRequest(models.Model):
     PENDING = 1
     ACCEPTED = 2
     DECLINED = 3
+    REVOKED = 4
     STATUS = (
         (PENDING, _("Pending")),
         (ACCEPTED, _("Accepted")),
@@ -53,11 +54,9 @@ class ChangeRequest(models.Model):
         """
         send_mail = False
         if not self.pk:
-            self.old_value = self.target_cell.value
+            if not self.old_value:
+                self.old_value = self.target_cell.value
             send_mail = True
-            if self.reviewed_by:
-                self.target_cell.value = self.new_value
-                self.target_cell.save()
         with transaction.atomic():
             super(ChangeRequest, self).save(*args, **kwargs)
 
@@ -86,10 +85,18 @@ class ChangeRequest(models.Model):
             self.save()
 
     def accept(self, reviewer, commit=True):
+        self.target_cell.value = self.new_value
+        self.target_cell.save()
         self._review(reviewer, ChangeRequest.ACCEPTED, commit)
 
     def decline(self, reviewer, commit=True):
         self._review(reviewer, ChangeRequest.DECLINED, commit)
+
+    def revoke(self, commit=True):
+        if self.status == ChangeRequest.ACCEPTED:
+            self.target_cell.value = self.old_value or ""
+            self.target_cell.save()
+        self._review(self.author, ChangeRequest.REVOKED, commit)
 
     def document_url(self):
         domain = Site.objects.get_current().domain

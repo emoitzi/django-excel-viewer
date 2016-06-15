@@ -40,7 +40,7 @@
             {% if cell.id in changes %}changed{% endif %}"
                         data-container="body" title="{% trans "Request change" %}"
                         data-toggle="popover" data-trigger="manual" >
-            {{ cell.value }}
+            <span class="value">{{ cell.value }}</span>
             {% if cell.id in pending_requests %}<span class="label label-info request">Request</span> {% endif %}
         </td>
         {% if cell.last_cell %}</tr>{% endif %}

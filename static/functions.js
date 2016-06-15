@@ -56,25 +56,79 @@ var VIEWER = VIEWER || {};
             $label.css('display', 'block');
         },
         setAcceptRequestButtonHandlers: function($cell) {
-            var $buttons = $('.pending-requests button').click(function () {
+            var $popover= $('#popover');
+
+            // Handler for request buttons
+            $popover.find('button.accept').click(function () {
                 var $button = $(this);
                 var request_id = $button.data('request');
-                $("#popover").find("button").prop("disabled", true);
+                $popover.find("button").prop("disabled", true);
                 $.ajax({
                     url: '/api/change-request/' + request_id + '/',
                     type: 'put',
                     dataType: 'json'
                 })
-                    .success(function (data, textStatus, jqXHR) {
+                    .done(function (data, textStatus, jqXHR) {
                         VIEWER.cells.changeCellValue($cell, data.new_value);
+                        $cell.children('.label.request').remove();
                         $cell.popover('destroy');
+                        $popover.find("button").prop("disabled", false);
+                        VIEWER.cells.current_cell = null;
+                    })
+            });
+            // Handler for revoke button
+            $popover.find('button.revoke').click(function () {
+                var $button = $(this);
+                var request_id = $button.data('request');
+                $("#popover").find("button").prop("disabled", true);
+                $.ajax({
+                    url: '/api/change-request/' + request_id + '/',
+                    type: 'delete',
+                    dataType: 'json'
+                })
+                    .done(function (data, textStatus, jqXHR) {
+                        VIEWER.cells.changeCellValue($cell, data.old_value);
+                        if (! data.other_requests) {
+                            $cell.children('.label.request').remove();
+                        }
+                        $cell.popover('destroy');
+                        $popover.find("button").prop("disabled", false);
                         VIEWER.cells.current_cell = null;
                     })
             })
+
+
         },
-        changeCellValue: function ($cell, new_value) {
-            $cell.text(new_value)
-                .addClass('changed');
+        changeCellValue: function ($cell, new_value, remove_class) {
+            remove_class = typeof remove_class !== 'undefined' ? remove_class : false;
+            $cell.children('.value').text(new_value);
+            var class_string = 'changed';
+            if (remove_class) {
+                $cell.removeClass(class_string);
+            }
+            else {
+                $cell.addClass(class_string);
+            }
+        },
+        setDeleteSubmitHandler: function ($cell) {
+            $('#popover').find('.delete-form').click(function (e) {
+                e.preventDefault();
+                var $form = $(this);
+                $("#popover").find("button").prop("disabled", true);
+                var action_url = $form.data('action');
+                $.ajax({
+                    url: action_url,
+                    type: 'delete'
+                })
+                    .done(function (data, textStatus, jqXHR) {
+                        VIEWER.cells.changeCellValue($cell, data.old_value, true);
+                    })
+                    .always(function () {
+                        $cell.popover('destroy');
+                        VIEWER.cells.current_cell = null;
+                    });
+
+                });
         },
         setRequestSubmitHandler: function ($cell) {
             var $forms = $('.request_form');
@@ -111,6 +165,7 @@ var VIEWER = VIEWER || {};
         addPopoverEventHandlers: function ($cell) {
             VIEWER.cells.setRequestSubmitHandler($cell);
             VIEWER.cells.setAcceptRequestButtonHandlers($cell);
+            VIEWER.cells.setDeleteSubmitHandler($cell);
             // $('#new_value').click(function (e) {
             //     e.preventDefault();
             //     $(this).removeAttr("readonly");

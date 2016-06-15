@@ -136,7 +136,7 @@ LOGGING = {
         'console': {
             'class': 'logging.StreamHandler',
             # 'stream': sys.stdout,
-            'level': 'DEBUG',
+            'level': 'INFO',
             'formatter': 'simple',
         },
         'file': {
