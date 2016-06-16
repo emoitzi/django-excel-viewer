@@ -20,4 +20,4 @@ script:
   - python manage.py migrate
   - coverage run --source='.' manage.py test
 after_success:
-  - code-climate-test-reporter
+  - codeclimate-test-reporter
