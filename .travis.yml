@@ -13,9 +13,11 @@ env:
 
 install :
   - pip install -r excel_viewer/requirements.txt
-
+  - pip install coveralls
 before_script:
   - psql -c "CREATE DATABASE travisdb;" -U  postgres
 script:
   - python manage.py migrate
   - python manage.py test
+after_success:
+  coveralls
