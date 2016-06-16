@@ -1,23 +1,32 @@
 language: python
 python:
-  - 3.3
-
+- 3.3
 services: postgresql
-
 env:
   global:
-   - OPENSHIFT_POSTGRESQL_DB_URL="postgres://postgres:@localhost"
-   - OPENSHIFT_APP_NAME="travisdb"
-   - DJANGO_SETTINGS_MODULE="excel_viewer.settings"
-   - PYTHONPATH="/home/travis/build/emoitzi/django-excel-viewer"
-
-install :
-  - pip install -r excel_viewer/requirements.txt
-  - pip install codeclimate-test-reporter
+  - OPENSHIFT_POSTGRESQL_DB_URL="postgres://postgres:@localhost"
+  - OPENSHIFT_APP_NAME="travisdb"
+  - DJANGO_SETTINGS_MODULE="excel_viewer.settings"
+  - PYTHONPATH="/home/travis/build/emoitzi/django-excel-viewer"
+install:
+- pip install -r excel_viewer/requirements.txt
+- pip install codeclimate-test-reporter
 before_script:
-  - psql -c "CREATE DATABASE travisdb;" -U  postgres
+- psql -c "CREATE DATABASE travisdb;" -U  postgres
 script:
-  - python manage.py migrate
-  - coverage run --omit=*tests.py,*/migrations/* --source='.' manage.py test
+- python manage.py migrate
+- coverage run --omit=*tests.py,*/migrations/* --source='.' manage.py test
 after_success:
-  - codeclimate-test-reporter
+- codeclimate-test-reporter
+deploy:
+  provider: openshift
+  user:
+    secure: mEdgctAVAM8WngSZEFqvRla27m2AfRPF1R1Hr5fRn+tpZ5oAcv+1zVU6KjiNNUYFKdd3MnbMw+Xyy1XHcIKodJEPs2Gd6q41DiAhDMPIZyyV0rQpgGIs2WKLdkNgcI+RT3LNm6Ff1fSK4Niwi41Rtw2JatR14kdN4pe38y7pJ4ygKEJdHq5uVpLdpGDcoh67OQH1G/PsL9U0QQC2HrEv1xGbSL+iko/8yNU2eq3jAIwc7IungOW+9yIKubPxwYoHBYqMj+Q0IcEVN5VjcyZNRZJmmOXLabBaVdFVJHwgloldP5xDKFUHA9lTjuPjWPZQ4ZkS7dztYFEbynvDLSbxuAPRRh00nG3MK6sc6w9meBsJizyds9nlpIYDGfB/Jn4GshNlh6TIpAH6m8E9d0UabbeQ51rzFvSLlQJR2iswXJVCH41EiWhDoE+C5OY2SSnQ1Ja+cIuLUZ6NyLrM0jaiX/Fs9PmhtdT6JcrzQbIzsqYleASBsyaHi2qlsX/ahWaq3XLGPMH3Chqs2Jqqg8aJ7PQ1qE3/0AI1A5nt83aRUVNvJz8Cx4Ffxs98hoXBrzaHmoXI6vnfTTCxG1/JFGfZ+4tVvGyWcb5rTjH/sLbg5wkIy5ZUg46NqovA4WO++G4eENJgWp42ymvhttD/24mU64TFDz7ezbO3nc1rzHKHbp4=
+  password:
+    secure: p8FKPmtm31VJC6XF1rOC82VSTsh0UofgGBbnZoay/X0JxlYNdAG+uKC8ekZlicOHObyj2GU/lOdcPRzHTOLxY4/gZKwVwdijhjMB5q3JQBuYZI2s0wV0E/n3KepQahbqVUGBLnLurZ6CElt0sl8fm+ELwn9KIK+UKU5BxcgYpiMgvHJYp9CYriBBwvCAZKOHwZ68Fn+Isy2Kh/T2kTVzpKZJousQVsYEtMMMnR7Ik/qqMYx+dcgv8ZahiOHowbg6XOyBFdMpEMzIDZDbWGNuenFEG0D3TPTEk5FrGZigQc+iGTdwtcF8yi4v13F+ZF9QA7fv3DlZiDSLr1vAiCRoXkZkgtKJXcYzxNLbFe6PqYBzKxtb/nGIXCh7znJl89vmJKq29JrBDR8Zap/7FDQPMvjJeycbd3ambkxalT3j6fPerrwatgCY9VqH0tPzEn+sVUyWxuUgceAHclW1GGXYZ5JhKDXf/EbFErPgg9CR5+j11ab760Ff5Wh6lW8MBvi87ymyzfPkFqK70h7Lbpy8UZbs0cvZv4cf98SDiCuVm+jDUkwIV39XgPVBpeO5SDK0K2o160tM3yE0ddt89yN5dXzRFLfS8vks8LlXnvPxZNc8pNG5lvdr16iM4jdVyfjyFsCNt7cMXovWVOpN+YyvKXD/SfKhIf5NLVEL3MvTVn4=
+  app:
+    secure: eDiOHTo1hGZXbA0sVF5XuQ73x/kMpLUxuTWzAAQ500iSaNqlIWKLD/nTy1KZVooo6nkxp3UzgLK3FvzF4yCW0iqJsyyNXYiKRHGOY2cV1oGwcmoAHJzKSrRNoswpvEs8eOEfrkY9sWzcYZOq4XVkitFJlksEoDV+HXYC2hXU8R7lmlaaaZ/JkrNTcvVw55i+QUkoFhoh++57obT+KTqNeFR6kZ9+Owgm0rq6CdPhC36FuLD5yeKs6/RD91rJhvMwh1FpxcEYaGd4hCZ+rfCG23W/n6TG0/o2R2lhrXfrTy425zRglYasUhJeN5DmXWooKQ7ebxZn3YRAZ/jstwhrYABqHaVs9ezRGpoAaN291qUxjDjlVBVMcAtEbLyLBkiGnOKmBFW/OqobLQ762uCtsZRszzEzMBpPG/O7f96hM54pYC+t9ZooY8gsLSsLdC4NKkDc92XNeGtSigOuCUEEW2suWkpXl54Ft19eth8JYXnM1u769BcjbtQ9SLPVIJ2degU0vqYBPcnNahtErvotiXCOtqatAftGnQRZj/bp7MgUe3RD//Ps4rNT70U3pbaDinatJFid9txNqij/bLPBKeGCl2novEXoXusLwQdfDykmR19HrARFp2yCl8VTuhtjTLsBU8IlXQVDTsgpduZzXY1tgoUQgeYGiaN5LsFNTis=
+  domain:
+    secure: e+lFNjoeiMrebdyG0tzUvciEJ9HqCXB+UTU1ISh0OV0zifriMXvtMDf6RPlxDJbxmZnmdNdvJstAXRjAGggc3zuDxFs3D3ZOGNJL9nAzYPyWGH4n4q846LGJyyU6okv1Uqxql3pZu+VAmvDQ/G2vCXfq74ZNCtFZytExQVkaSbedfVY6DEzQkxNd5Nxd4m4AyZcSSdmic2/Z2tT+dp75v8uoIeaCBtWUhNvFvt4Gk3THGA0pzJLEVuCHAnIMbtG46U1E01nuQsZB5EaXF99YDN8LbxBmIV9yWOOYzK6Gfx6mGeTNDHy4TgW7+uM2xElg1Vq7UJWCbw6K5guCW4Wld9Stpu0mcqTrISAjXrAPhDck4HkAc1OxncP3R5kskYfMgI9ijDu9MWA0naLBnJN5UVeSn/TmQ9SItWtyt5mdl6TqJrv26HlwOdY5+zmXtj6RvB2x/bNhPXEaxVA39EGi2iNlYRwDnfMCTg5/7KXBiR+Nts9VaCQZJ3Hc2yL++pYnaAhx5iMYqdunD6f5R9/qcL8vp0Dg7NEj2C9oqwFqMUkjijd4LDqOPJxRmAJySf9BA2yYwkrurmadXhBunxmA+Q291dxwXoOjMu722QBOWYgtTwWQyOwxgmAkuSzoXaamSAjWW2tp+XkcQTvMdx24snxg1ydnBlzCs1nrEAGu9HQ=
+  on:
+    repo: emoitzi/django-excel-viewer
