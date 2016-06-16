@@ -80,7 +80,7 @@ def list_documents(request):
 
 class DocumentView(DetailView):
     model = Document
-    template_name = "frontend/index.html"
+    template_name = "frontend/document_detail.html"
 
     def get_object(self, queryset=None):
         try:
@@ -167,7 +167,7 @@ create = login_required(DocumentCreate.as_view())
 
 def index(request):
     if request.user.is_authenticated():
-        return render(request, "index.html")
+        return render(request, "frontend/index.html")
     return login(request)
 
 
