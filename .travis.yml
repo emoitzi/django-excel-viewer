@@ -13,11 +13,11 @@ env:
 
 install :
   - pip install -r excel_viewer/requirements.txt
-  - pip install coveralls
+  - pip install codeclimate-test-reporter
 before_script:
   - psql -c "CREATE DATABASE travisdb;" -U  postgres
 script:
   - python manage.py migrate
-  - python manage.py test
+  - coverage run --source='.' manage.py test
 after_success:
-  coveralls
+  - code-climate-test-reporter
