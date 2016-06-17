@@ -199,7 +199,7 @@ class Document(models.Model):
         elif color.type == 'rgb':
             color_value = color.value
         elif color.type == 'indexed':
-            color_value = COLOR_INDEX[color.value]
+            color_value = ''.join(['FF', COLOR_INDEX[color.value][2:]])
         elif color.type == 'theme':
             theme_color = self.get_theme_color(cell)
             tint = "%02X" % (color.tint * 255)
@@ -227,7 +227,7 @@ class Document(models.Model):
                        row_span=row_span,
                        column_span=column_span,
                        document=self,
-                       horizontal_alignment=cell.style.alignment.horizontal,
+                       horizontal_alignment=cell.alignment.horizontal,
                        first_cell=is_first_cell, )
         return db_cell
 
