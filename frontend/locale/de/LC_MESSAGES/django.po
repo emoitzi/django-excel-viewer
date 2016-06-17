@@ -8,7 +8,7 @@ msgstr ""
 "Project-Id-Version: Excel viewer\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2016-06-15 20:24+0000\n"
-"PO-Revision-Date: 2016-06-15 22:36+0100\n"
+"PO-Revision-Date: 2016-06-17 20:19+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: de\n"
@@ -189,7 +189,7 @@ msgstr "%(name)s erfolgreich aktualisiert"
 #: frontend/views.py:158
 #, python-format
 msgid "%(name)s was created successfully"
-msgstr "%(name)s erflogreich erstellt"
+msgstr "%(name)s erfolgreich erstellt"
 
 #: frontend/views.py:183
 #, python-format

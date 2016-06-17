@@ -2,7 +2,7 @@
 {% for color in colors %}
 .{{ color.name }}
 {
-    background-color: #{{color.color}};
+    background-color: {{color.css_color}};
 }
 {% endfor %}
 .center {

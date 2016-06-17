@@ -24,28 +24,6 @@ from frontend.serializers import ChangeRequestSerializer
 logger = logging.getLogger(__name__)
 
 
-def str_to_ord(string):
-    if len(string) > 1:
-        raise ValueError
-    return ord(string[0])
-
-
-def get_span(start, end):
-    start_row = int(start.lstrip('ABCDEFGHIJKLMNOPQRSTUVWXYZ'))
-    start_column = str_to_ord(start.rstrip('0123456798'))
-
-    end_row = int(end.lstrip('ABCDEFGHIJKLMNOPQRSTUVWXYZ'))
-    end_column = str_to_ord(end.rstrip('0123456798'))
-
-    column_span = end_column - start_column
-    row_span = end_row - start_row
-
-    row_span = row_span + 1 if row_span else row_span
-    column_span = column_span + 1 if column_span else column_span
-
-    return column_span, row_span
-
-
 class PermissionRequiredMixin(object):
     required_permission = None
 

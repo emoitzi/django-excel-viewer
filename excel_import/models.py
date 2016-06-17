@@ -1,3 +1,6 @@
+from xml.etree import ElementTree
+
+import struct
 from django.db.models import Q
 from django.core.validators import MinValueValidator
 from django.db import models
@@ -6,7 +9,6 @@ from django.utils.translation import ugettext_lazy as _
 from openpyxl import load_workbook
 from openpyxl.styles.colors import COLOR_INDEX
 from openpyxl.writer.excel import save_virtual_workbook
-
 
 import logging
 
@@ -19,7 +21,6 @@ def str_to_ord(string):
     for i in range(0, len(string)):
         value += (ord(string[i]) - 64) * pow(26, len(string) - i - 1)
     return value
-
 
 
 def get_span(start, end):
@@ -40,8 +41,9 @@ def get_span(start, end):
 
 class DocumentManager(models.Manager):
     def get_current(self, id):
-        instance = self.get_queryset().get((Q(replaces=id) & Q(current=True) & Q(replaces__isnull=False)) |
-                                           (Q(id=id)) & Q(current=True) & Q(replaces__isnull=True))
+        instance = self.get_queryset().get(
+            (Q(replaces=id) & Q(current=True) & Q(replaces__isnull=False)) |
+            (Q(id=id)) & Q(current=True) & Q(replaces__isnull=True))
         return instance
 
     def all_current(self):
@@ -64,6 +66,9 @@ class Document(models.Model):
 
     objects = DocumentManager()
 
+    _theme_colors = []
+    _color_set = set()
+
     def __str__(self):
         return self.name
 
@@ -71,62 +76,46 @@ class Document(models.Model):
         parse_file = False
         if not self.pk:
             if self.current:
-                Document.objects.filter((Q(replaces=self.replaces) & Q(replaces__isnull=False)) |
-                                        Q(id=self.replaces_id)) \
-                    .update(current=False)
+                Document.objects.filter(
+                    (Q(replaces=self.replaces) & Q(replaces__isnull=False)) |
+                    Q(id=self.replaces_id)).update(current=False)
             parse_file = True
         super(Document, self).save(*args, **kwargs)
 
         if parse_file:
             self.parse_file()
 
-    def create_xlsx(self):
-        workbook = load_workbook(self.file.path)
-        sheet_names = workbook.get_sheet_names()
-        work_sheet = workbook[sheet_names[0]]
-
-        for cell in self.cell_set.all():
-            work_sheet[cell.coordinate].value = cell.value
-        return save_virtual_workbook(workbook)
+    _workbook = None
 
     @property
-    def url_id(self):
-        return self.replaces_id or self.pk
+    def workbook(self):
+        if not self._workbook:
+            self._workbook = load_workbook(self.file.path)
+        return self._workbook
 
-    def create_colors(self, work_sheet):
-        color_set = set()
-        index_set = set()
-        for row in work_sheet.rows:
-            color = row[0].fill.fgColor
+    _skip_list = None
 
-            # skip wrong black values
-            if color.value == '00000000':
-                continue
-            if color.type == 'rgb':
-                color_set.add(color.value)
-            elif color.type == 'indexed':
-                index_set.add(color.value)
-            else:
-                # TODO: Add theme colors
-                index_set.add(color.value)
+    @property
+    def skip_list(self):
+        if not self._skip_list:
+            self.create_skip_and_start_list()
+        return self._skip_list
 
-        for color in color_set:
-            name = ''.join(['color_', str(color)])
-            DocumentColors.objects.create(name=name, color=color[2:], document=self)
-        for index in index_set:
-            name = ''.join(['color_', str(index)])
-            DocumentColors.objects.create(name=name, color=str(COLOR_INDEX[index][2:]), document=self)
+    _start_cells = None
 
-    def parse_file(self):
-        workbook = load_workbook(self.file.path)
-        sheet_names = workbook.get_sheet_names()
-        work_sheet = workbook[sheet_names[0]]
+    @property
+    def start_cells(self):
+        if not self._start_cells:
+            self.create_skip_and_start_list()
+        return self._start_cells
 
+    def create_skip_and_start_list(self):
         start_cells = dict()
+        work_sheet = self.workbook.worksheets[0]
 
         skip_list = work_sheet.merged_cells.copy()
-        for range in work_sheet.merged_cell_ranges:
-            start, end = range.split(':')
+        for cell_range in work_sheet.merged_cell_ranges:
+            start, end = cell_range.split(':')
             skip_list.remove(start)
 
             column_span, row_span = get_span(start, end)
@@ -137,46 +126,150 @@ class Document(models.Model):
                 cell_span['column_span'] = column_span
             start_cells[start] = cell_span
 
-        self.create_colors(work_sheet)
-        logger.info("colors created")
+        self._start_cells = start_cells
+        self._skip_list = skip_list
+
+    def get_theme_color(self, cell):
+        fg_color = cell.fill.fgColor
+        if not fg_color.type == "theme":
+            return None
+
+        theme_index = fg_color.value
+        if not self._theme_colors:
+            self._theme_colors = self.parse_theme_colors()
+        try:
+            return self._theme_colors[theme_index]
+        except IndexError:
+            return None
+
+    def create_xlsx(self):
+        workbook = self.workbook
+        work_sheet = workbook.worksheets[0]
+
+        for cell in self.cell_set.all():
+            work_sheet[cell.coordinate].value = cell.value
+        return save_virtual_workbook(workbook)
+
+    @property
+    def url_id(self):
+        return self.replaces_id or self.pk
+
+    def parse_theme_colors(self):
+        colors = []
+        if not self.workbook.loaded_theme:
+            return colors
+        try:
+            name_space = {
+                'ns': "http://schemas.openxmlformats.org/drawingml/2006/main"}
+            root = ElementTree.fromstring(self.workbook.loaded_theme)
+            theme_elements = root.find('ns:themeElements', name_space)
+            color_schemes = theme_elements.findall('ns:clrScheme', name_space)
+            first_color_scheme = color_schemes[0]
+
+            for c in ['dk1', 'lt1', 'dk2', 'lt2', 'accent1', 'accent2',
+                      'accent3', 'accent4', 'accent5', 'accent6']:
+                accent = first_color_scheme.find('ns:' + c, name_space)
+
+                if 'window' in accent.getchildren()[0].attrib['val']:
+                    colors.append(accent.getchildren()[0].attrib['lastClr'])
+                else:
+                    colors.append(accent.getchildren()[0].attrib['val'])
+        except AttributeError:
+            logger.exception('Parsing theme colors failed')
+        return colors
+
+    @staticmethod
+    def get_name_for_color(color):
+        return ''.join(['color_', color])
+
+    def save_colors(self):
+        for color in self._color_set:
+            name = Document.get_name_for_color(color)
+            DocumentColors.objects.create(document=self,
+                                          color=color,
+                                          name=name)
+
+    def get_color_from_cell(self, cell):
+        color = cell.fill.fgColor
+        color_value = None
+
+        # skip wrong black values
+        if color.value == '00000000':
+            color_value = None
+        elif color.type == 'rgb':
+            color_value = color.value
+        elif color.type == 'indexed':
+            color_value = COLOR_INDEX[color.value]
+        elif color.type == 'theme':
+            theme_color = self.get_theme_color(cell)
+            tint = "%02X" % (color.tint * 255)
+            color_value = ''.join([tint, theme_color])
+
+        if not color_value:
+            return ""
+
+        name = Document.get_name_for_color(color_value)
+        self._color_set.add(color_value)
+        return name
+
+    def prepare_cell(self, cell, is_first_cell):
+        color_name = self.get_color_from_cell(cell)
+        row_span = None
+        column_span = None
+
+        if cell.coordinate in self.start_cells:
+            row_span = self.start_cells[cell.coordinate].get('row_span',  None)
+            column_span = self.start_cells[cell.coordinate].get('column_span',
+                                                                None)
+        db_cell = Cell(coordinate=cell.coordinate,
+                       value=cell.value or "",
+                       color_name=color_name,
+                       row_span=row_span,
+                       column_span=column_span,
+                       document=self,
+                       horizontal_alignment=cell.style.alignment.horizontal,
+                       first_cell=is_first_cell, )
+        return db_cell
+
+    def parse_file(self):
+        work_sheet = self.workbook.worksheets[0]
+
         cell_list = list()
         for row in work_sheet.rows:
             # TODO: Check if all columns have same length
-            # TODO: skip empty cells/rows. E.g. skip row if first X(=10?) columns are empty
-            # db_row = Row.objects.create(document=self)
-            first_cell = True
-            for cell in row:
-                if cell.coordinate in skip_list:
-                    continue
-                row_span = None
-                column_span = None
+            # TODO: skip empty cells/rows. E.g. skip row if first X(=10?)
+            #       columns are empty
 
-                if cell.coordinate in start_cells:
-                    row_span = start_cells[cell.coordinate].get('row_span', None)
-                    column_span = start_cells[cell.coordinate].get('column_span', None)
-                cell_list.append(Cell(coordinate=cell.coordinate,
-                                      value=cell.value or "",
-                                      color_name=''.join(['color_', str(cell.fill.fgColor.value)]),
-                                      row_span=row_span,
-                                      column_span=column_span,
-                                      document=self,
-                                      horizontal_alignment=cell.style.alignment.horizontal,
-                                      first_cell=first_cell,
-                                      ))
-                first_cell = False
+            is_first_cell = True
+            for cell in row:
+                if cell.coordinate in self.skip_list:
+                    continue
+                db_cell = self.prepare_cell(cell, is_first_cell)
+                if db_cell:
+                    cell_list.append(db_cell)
+
+                is_first_cell = False
                 logger.debug("created cell %s" % cell.coordinate)
+
         cell_list[len(cell_list) - 1].last_cell = True
         Cell.objects.bulk_create(cell_list)
+        self.save_colors()
 
 
 class Cell(models.Model):
     coordinate = models.CharField(max_length=15)
     value = models.CharField(max_length=255, default="", blank=True)
-    color_name = models.CharField(max_length=20)
-    row_span = models.IntegerField(blank=True, null=True, validators=MinValueValidator(1))
-    column_span = models.IntegerField(blank=True, null=True, validators=MinValueValidator(1))
+    color_name = models.CharField(max_length=20, blank=True)
+    row_span = models.IntegerField(blank=True,
+                                   null=True,
+                                   validators=MinValueValidator(1))
+    column_span = models.IntegerField(blank=True,
+                                      null=True,
+                                      validators=MinValueValidator(1))
     document = models.ForeignKey(Document)
-    horizontal_alignment = models.CharField(max_length=20, null=True, blank=True)
+    horizontal_alignment = models.CharField(max_length=20,
+                                            null=True,
+                                            blank=True)
     first_cell = models.BooleanField(default=False)
     last_cell = models.BooleanField(default=False)
 
@@ -204,7 +297,7 @@ class Cell(models.Model):
 
 
 class DocumentColors(models.Model):
-    name = models.CharField(max_length=20)
+    name = models.CharField(max_length=20, db_index=True)
     color = models.CharField(max_length=6)
     document = models.ForeignKey(Document)
 
@@ -213,3 +306,18 @@ class DocumentColors(models.Model):
 
     def __str__(self):
         return "%s (%s)" % (self.name, self.color)
+
+    @staticmethod
+    def hex_to_rgba(value):
+        value = value.lstrip('#')
+        lv = len(value)
+        argb = [int(value[i:i + lv // 4], 16) for i in range(0, lv, lv // 4)]
+        rgba = 'rgba(%d,%d,%d,%.2f)' % \
+               (argb[1], argb[2], argb[3], argb[0] / 255)
+        return rgba
+
+    @property
+    def css_color(self):
+        if len(self.color) == 6:
+            return ''.join(['#', self.color])
+        return DocumentColors.hex_to_rgba(self.color)
