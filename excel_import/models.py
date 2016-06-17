@@ -298,7 +298,7 @@ class Cell(models.Model):
 
 class DocumentColors(models.Model):
     name = models.CharField(max_length=20, db_index=True)
-    color = models.CharField(max_length=6)
+    color = models.CharField(max_length=8)
     document = models.ForeignKey(Document)
 
     class Meta:
