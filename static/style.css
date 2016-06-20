@@ -43,21 +43,58 @@
     background-color: red !important;
 }
 
-ul.socialaccount_providers {
-    list-style-type: None;
+.provider {
+    height: 40px;
+    width: 191px;
+    color: white;
+    float: left;
+    border-radius: 2px;
+    margin-right:5px;
+    margin-bottom: 20px;
 }
 
-a.facebook {
-    -moz-user-select: none;
-    background: #2A49A5;
-    border: 1px solid #082783;
-    box-shadow: 0 1px #4C6BC7 inset;
-    color: white;
-    padding: 7px 20px;
-    text-decoration: none;
-    text-shadow: 0 -1px 0 #082783;
-    font: 14px Verdana, sans-serif;
-    font-weight: bold;
+.provider a {
+    display: block;
+    height: 100%;
+    width:100%;
+}
+
+.provider .logo-container {
+    float: left;
+}
+
+.google .logo {
+    background-image: url('/static/images/btn_google_dark_normal_ios.svg');
+    background-position: -3px center;
+}
+.facebook .logo {
+    background-image: url('/static/images/FB-f-Logo__blue_29.png');
+    border-right: 1px solid rgba(9, 9, 9, 0.13);
+    background-position: center center;
+}
+
+.provider .logo {
+    background-repeat:no-repeat;
+    height: 40px;
+    width: 43px;
+    display: block;
+}
+
+.provider .text {
+    line-height: 40px;
+    text-align: center;
+}
+
+.provider.facebook {
+    background: #3b5999
+}
+
+.provider.google {
+    background: #4285F4;
+}
+
+.provider.google .text{
+    font-family: 'Roboto', sans-serif;
 }
 
 .horizontal-spacer {

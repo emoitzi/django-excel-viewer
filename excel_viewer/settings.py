@@ -53,6 +53,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
+    'allauth.socialaccount.providers.google',
 
     'frontend',
     'excel_import',
@@ -220,20 +221,28 @@ ACCOUNT_USER_DISPLAY = "users.utils.get_username"
 
 
 SOCIALACCOUNT_PROVIDERS = \
-    {'facebook':
-       {'METHOD': 'oauth2',
-        'SCOPE': ['email', 'public_profile', ],
-        'FIELDS': [
-            'id',
-            'email',
-            'name',
-            'first_name',
-            'last_name',
-            'verified',
-],
-        'EXCHANGE_TOKEN': True,
-        'VERIFIED_EMAIL': True,
-        'VERSION': 'v2.4'}}
+    {
+        'facebook': {
+            'METHOD': 'oauth2',
+            'SCOPE': ['email', 'public_profile', ],
+            'FIELDS': [
+                'id',
+                'email',
+                'name',
+                'first_name',
+                'last_name',
+                'verified',
+            ],
+            'EXCHANGE_TOKEN': True,
+            'VERIFIED_EMAIL': True,
+            'VERSION': 'v2.4'
+        },
+        'google':
+        {
+            'SCOPE': ['profile', 'email'],
+            'AUTH_PARAMS': {'access_type': 'online'}
+        }
+    }
 
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 

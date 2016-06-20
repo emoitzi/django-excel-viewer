@@ -18,6 +18,11 @@
                         <a href="{% provider_login_url "facebook" process="connect" %}">{% trans "Connect this account to my Facebook account"%}</a>
                     </li>
                     {% endif %}
+                    {% if not has_google%}
+                    <li>
+                        <a href="{% provider_login_url "google" process="connect" %}">{% trans "Connect this account to my Google account"%}</a>
+                    </li>
+                    {% endif %}
                     <div class="horizontal-spacer"></div>
                     <li>
                         <a href="{% url 'index' %}" >{% trans "Back to menu" %}</a>

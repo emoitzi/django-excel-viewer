@@ -2,8 +2,13 @@
 
 {% load i18n %}
 {% load account socialaccount %}
+{% load static %}
 
 {% block head_title %}{% trans "Sign In" %}{% endblock %}
+{% block head %}
+    {{ block.super }}
+    <link href='https://fonts.googleapis.com/css?family=Roboto:500' rel='stylesheet' type='text/css'>
+{% endblock head %}
 
 {% block content %}
 
@@ -16,18 +21,37 @@
 of your existing third party accounts. Or, <a href="{{ signup_url }}">sign up</a>
 for a {{ site_name }} account and sign in below:{% endblocktrans %}</p>
 
-<div class="socialaccount_ballot">
+<div>
+     <a title="Facebook" class="socialaccount_provider facebook"
+     href="{% provider_login_url "facebook" process=process scope=scope auth_params=auth_params %}">
 
-  <ul class="socialaccount_providers">
-    {% include "socialaccount/snippets/provider_list.html" with process="login" %}
-  </ul>
+    <div class="provider facebook">
+        <div class="logo-container">
+            <span class="logo"></span>
+        </div>
+        <div class="text">
+            <span>Facebook</span>
+        </div>
+    </div>
+</a>
 
-  <div class="login-or">{% trans 'or' %}</div>
+
+
+    <a title="Google" class="socialaccount_provider google"
+         href="{% provider_login_url "google" process=process scope=scope auth_params=auth_params %}">
+        <div class="provider google">
+            <div class="logo-container">
+                <span class="logo"></span>
+            </div>
+            <div class="text">
+                <span>Google</span>
+            </div>
+        </div>
+    </a>
+
 
 </div>
-
-{% include "socialaccount/snippets/login_extra.html" %}
-
+<div class="clearfix"></div>
 {% else %}
 <p>{% blocktrans %}If you have not created an account yet, then please
 <a href="{{ signup_url }}">sign up</a> first.{% endblocktrans %}</p>

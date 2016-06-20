@@ -42,6 +42,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         if not allowed_groups:
             return True
 
+        if not sociallogin.accounts.provider == 'facebook':
+            return False
+
         for group in allowed_groups:
             next_url = None
             while True:
@@ -59,8 +62,12 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         return False
 
     def pre_social_login(self, request, sociallogin):
-        if not self.check_facebook_groups(sociallogin):
-            raise ImmediateHttpResponse(render(request, "users/fb_group_required.html"))
+        process = sociallogin.state.get('process', None)
+        if process == 'connect':
+            return
+        if not sociallogin.is_existing:
+            if not self.check_facebook_groups(sociallogin):
+                raise ImmediateHttpResponse(render(request, "users/fb_group_required.html"))
 
     def get_connect_redirect_url(self, request, socialaccount):
         return reverse('user:settings')

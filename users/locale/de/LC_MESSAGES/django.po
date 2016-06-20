@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Django excel\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-15 20:24+0000\n"
-"PO-Revision-Date: 2016-06-15 22:29+0100\n"
+"POT-Creation-Date: 2016-06-17 21:35+0000\n"
+"PO-Revision-Date: 2016-06-17 23:36+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: de\n"
@@ -18,7 +18,7 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: users/adapter.py:79
+#: users/adapter.py:86
 msgid "Adresses from this domain are not allowed."
 msgstr "Addressen von dieser Domain sind nicht erlaubt."
 
@@ -53,8 +53,13 @@ msgstr "Passwort ändern"
 
 #: users/templates/users/settings.html:18
 msgid "Connect this account to my Facebook account"
-msgstr "Diesen Account mit meinem Facebookaccount verbinden."
+msgstr "Diesen Account mit meinem Facebook Account verbinden."
 
 #: users/templates/users/settings.html:23
+#| msgid "Connect this account to my Facebook account"
+msgid "Connect this account to my Google account"
+msgstr "Diesen Account mit meinem Google Account verbinden."
+
+#: users/templates/users/settings.html:28
 msgid "Back to menu"
 msgstr "Zurück zum Menü"

@@ -8,10 +8,15 @@ class SettingsView(TemplateView):
         accounts = self.request.user.socialaccount_set.filter(provider='facebook')
         return accounts.exists()
 
+    def has_google(self):
+        accounts = self.request.user.socialaccount_set.filter(provider='google')
+        return accounts.exists()
+
     def get_context_data(self, **kwargs):
         context = super(SettingsView, self).get_context_data(**kwargs)
         context.update({
             "has_facebook": self.has_facebook(),
+            "has_google": self.has_google(),
         })
         return context
 
