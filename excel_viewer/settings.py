@@ -143,7 +143,8 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.FileHandler',
-            'filename': os.path.join(os.environ.get("OPENSHIFT_LOG_DIR", ""), "debug.log"),
+            'filename': os.path.join(os.environ.get("OPENSHIFT_LOG_DIR", ""),
+                                     "debug.log"),
             'formatter': 'verbose',
         },
         'mail_admins': {

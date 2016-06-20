@@ -1,0 +1,67 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Dienstplan Murau\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-06-20 12:32+0000\n"
+"PO-Revision-Date: 2016-06-20 14:29+0100\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.5.4\n"
+
+#: templates/account/login.html:7 templates/account/login.html.py:15
+#: templates/account/login.html:67
+msgid "Sign In"
+msgstr "Registrieren"
+
+#: templates/account/login.html:20
+#, python-format
+msgid ""
+"Please sign in with one\n"
+"of your existing third party accounts. Or, <a href=\"%(signup_url)s\">sign "
+"up</a>\n"
+"for a account and sign in below:"
+msgstr ""
+"Bitte melde dich mit einem\n"
+"deiner Drittaccounts an, oder <a href=\"%(signup_url)s\"> registriere</a>\n"
+"dich  für einen  Account und melde dich unten an:"
+
+#: templates/account/login.html:56
+#, python-format
+msgid ""
+"If you have not created an account yet, then please\n"
+"<a href=\"%(signup_url)s\">sign up</a> first."
+msgstr ""
+
+#: templates/account/login.html:66
+msgid "Forgot Password?"
+msgstr "Passwort vergessen?"
+
+#: templates/base.html:8
+msgid "Excel Viewer"
+msgstr "Dienstplan Murau"
+
+#: templates/base.html:57
+msgid "Documents"
+msgstr "Dienstpläne"
+
+#: templates/base.html:60
+msgid "Upload"
+msgstr "Upload"
+
+#: templates/base.html:64
+msgid "My Account"
+msgstr "Mein Account"
+
+#: templates/base.html:67
+msgid "Logout"
+msgstr "Abmelden"
