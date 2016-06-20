@@ -11,7 +11,11 @@ https://docs.djangoproject.com/en/1.9/ref/settings/
 """
 
 import os
+from socket import gethostname
 from urllib.parse import urlparse
+import sys
+from libs import secrets
+from django.contrib.messages import constants as messages
 
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
@@ -21,19 +25,17 @@ DATA_DIR = os.environ.get('OPENSHIFT_DATA_DIR', os.path.join(REPO_DIR, 'data'))
 WSGI_DIR = os.path.join(REPO_DIR, 'wsgi')
 
 
-import sys
-sys.path.append(os.path.join(REPO_DIR, 'libs'))
-import secrets
+# sys.path.append(os.path.join(REPO_DIR, 'libs'))
 SECRETS = secrets.getter(os.path.join(DATA_DIR, 'secrets.json'))
 
 SECRET_KEY = SECRETS['secret_key']
 
 DEBUG = os.environ.get('EXCEL_VIEWER_DEBUG', 'TRUE') == 'TRUE'
 
-from socket import gethostname
 ALLOWED_HOSTS = [
-    gethostname(), # For internal OpenShift load balancer security purposes.
-    os.environ.get('OPENSHIFT_APP_DNS'), # Dynamically map to the OpenShift gear name.
+    gethostname(),  # For internal OpenShift load balancer security purposes.
+    # Dynamically map to the OpenShift gear name.
+    os.environ.get('OPENSHIFT_APP_DNS'),
 ]
 
 # Application definition
@@ -54,6 +56,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount',
     'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
+    'raven.contrib.django.raven_compat',
 
     'frontend',
     'excel_import',
@@ -81,8 +84,7 @@ ROOT_URLCONF = 'excel_viewer.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [os.path.join(BASE_DIR, 'templates')]
-        ,
+        'DIRS': [os.path.join(BASE_DIR, 'templates')],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -112,7 +114,7 @@ if 'OPENSHIFT_POSTGRESQL_DB_URL' in os.environ:
     url = urlparse(os.environ.get('OPENSHIFT_POSTGRESQL_DB_URL'))
 
     DATABASES['default'] = {
-        'ENGINE' : 'django.db.backends.postgresql_psycopg2',
+        'ENGINE': 'django.db.backends.postgresql_psycopg2',
         'NAME': os.environ['OPENSHIFT_APP_NAME'],
         'USER': url.username,
         'PASSWORD': url.password,
@@ -134,6 +136,10 @@ LOGGING = {
         'level': 'DEBUG'
     },
     'handlers': {
+        'sentry': {
+            'level': 'INFO',
+            'class': 'raven.contrib.django.raven_compat.handlers.SentryHandler',
+        },
         'console': {
             'class': 'logging.StreamHandler',
             # 'stream': sys.stdout,
@@ -146,11 +152,6 @@ LOGGING = {
             'filename': os.path.join(os.environ.get("OPENSHIFT_LOG_DIR", ""),
                                      "debug.log"),
             'formatter': 'verbose',
-        },
-        'mail_admins': {
-            'level': 'ERROR',
-            'class': 'django.utils.log.AdminEmailHandler',
-            'include_html': True,
         },
     },
     'formatters': {
@@ -165,28 +166,37 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['console', 'file', 'mail_admins'],
+            'handlers': ['sentry','console', 'file', ],
             'level': 'INFO',
             'propagate': True,
         },
         'django.request': {
-            'handlers': ['mail_admins'],
+            'handlers': ['sentry', ],
             'level': 'ERROR',
             'propagate': False,
         },
         'requests': {
-            'handlers': ['console', 'file', 'mail_admins'],
+            'handlers': ['console', 'file', 'sentry'],
             'level': 'WARNING',
             'propagate': True,
         },
+        'raven': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file'],
+            'propagate': False,
+        },
+        'sentry.errors': {
+            'level': 'DEBUG',
+            'handlers': ['console', 'file'],
+            'propagate': False,
+        },
         '': {
-            'handlers': ['console', 'file', 'mail_admins'],
+            'handlers': ['console', 'file', 'sentry'],
             'level': 'DEBUG',
         }
     }
 }
 
-ADMINS = tuple(admin for admin in os.environ.get("EXCEL_VIEWER_ADMINS", "").split(';') if admin)
 
 # Internationalization
 # https://docs.djangoproject.com/en/1.9/topics/i18n/
@@ -201,12 +211,11 @@ USE_L10N = True
 
 USE_TZ = True
 
-
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/1.9/howto/static-files/
 
 STATIC_URL = '/static/'
-STATICFILES_DIRS = ( os.path.join(BASE_DIR, 'static'), )
+STATICFILES_DIRS = (os.path.join(BASE_DIR, 'static'), )
 STATIC_ROOT = os.path.join(WSGI_DIR, 'static')
 
 MEDIA_ROOT = os.path.join(DATA_DIR, 'media')
@@ -218,7 +227,7 @@ ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_LOGOUT_ON_GET = True
 SOCIALACCOUNT_EMAIL_VERIFICATION = False
 ACCOUNT_AUTHENTICATION_METHOD = "username_email"
-ACCOUNT_DEFAULT_HTTP_PROTOCOL="http" if DEBUG else "https"
+ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
 
 ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.SignupForm'
 ACCOUNT_ADAPTER = "users.adapter.AccountAdapter"
@@ -258,12 +267,11 @@ if 'EXCEL_VIEWER_MAIL_URL' in os.environ:
     EMAIL_HOST = url.hostname
     EMAIL_PORT = url.port
     EMAIL_HOST_USER = url.username
-    EMAIL_HOST_PASSWORD  = url.password
+    EMAIL_HOST_PASSWORD = url.password
     EMAIL_USE_TLS = True
 
 if 'EXCEL_VIEWER_DEFAULT_FROM_EMAIL' in os.environ:
     DEFAULT_FROM_EMAIL = os.environ.get('EXCEL_VIEWER_DEFAULT_FROM_EMAIL')
-    SERVER_EMAIL = DEFAULT_FROM_EMAIL
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -291,7 +299,6 @@ DEBUG_TOOLBAR_PANELS = [
     # 'debug_toolbar.panels.profiling.ProfilingPanel'
 ]
 
-from django.contrib.messages import constants as messages
 MESSAGE_TAGS = {
     messages.ERROR: 'danger'
 }
@@ -301,3 +308,7 @@ BROKER_URL = os.environ.get("EXCEL_VIEWER_CELERY_BROKER_URL", "redis://")
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
 ]
+
+RAVEN_CONFIG = {
+    'dsn': os.environ.get("RAVEN_DSN"),
+}
