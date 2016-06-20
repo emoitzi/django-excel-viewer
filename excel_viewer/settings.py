@@ -167,12 +167,12 @@ LOGGING = {
         'django': {
             'handlers': ['console', 'file', 'mail_admins'],
             'level': 'INFO',
-            'propagate': False,
+            'propagate': True,
         },
         'requests': {
             'handlers': ['console', 'file', 'mail_admins'],
             'level': 'WARNING',
-            'propagate': False,
+            'propagate': True,
         },
         '': {
             'handlers': ['console', 'file', 'mail_admins'],
