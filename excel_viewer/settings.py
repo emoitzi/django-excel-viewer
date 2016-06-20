@@ -169,6 +169,11 @@ LOGGING = {
             'level': 'INFO',
             'propagate': True,
         },
+        'django.request': {
+            'handlers': ['mail_admins'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
         'requests': {
             'handlers': ['console', 'file', 'mail_admins'],
             'level': 'WARNING',
