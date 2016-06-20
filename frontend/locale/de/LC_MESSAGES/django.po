@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Excel viewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-17 21:35+0000\n"
-"PO-Revision-Date: 2016-06-17 21:26+0100\n"
+"POT-Creation-Date: 2016-06-20 12:32+0000\n"
+"PO-Revision-Date: 2016-06-20 14:38+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
 "Language: de\n"
@@ -65,23 +65,19 @@ msgstr "Eintrag löschen"
 msgid "New request"
 msgstr "Neuer Wunsch"
 
-#: frontend/templates/frontend/document_detail.html:21
+#: frontend/templates/frontend/document_detail.html:12
 msgid "Status: "
 msgstr "Status: "
 
-#: frontend/templates/frontend/document_detail.html:26
+#: frontend/templates/frontend/document_detail.html:17
 msgid "Edit"
 msgstr "Bearbeiten"
 
-#: frontend/templates/frontend/document_detail.html:28
+#: frontend/templates/frontend/document_detail.html:19
 msgid "Download"
 msgstr "Download"
 
-#: frontend/templates/frontend/document_detail.html:29
-msgid "Back"
-msgstr "Zurück"
-
-#: frontend/templates/frontend/document_detail.html:41
+#: frontend/templates/frontend/document_detail.html:31
 msgid "Request change"
 msgstr "Wunsch eintragen"
 
@@ -91,7 +87,7 @@ msgstr "Xlsx-Datei hochladen"
 
 #: frontend/templates/frontend/document_list.html:5
 msgid "Document list"
-msgstr "Dokumente"
+msgstr "Dienstpläne"
 
 #: frontend/templates/frontend/document_list.html:18
 msgid "Previous"
@@ -162,7 +158,7 @@ msgstr "Menü"
 
 #: frontend/templates/frontend/index.html:13
 msgid "List documents"
-msgstr "Dokumente"
+msgstr "Dienstpläne"
 
 #: frontend/templates/frontend/index.html:17
 msgid "Upload"
@@ -220,3 +216,6 @@ msgstr "Erfolgreich entfernt."
 #: frontend/views.py:223
 msgid "You cannot withdraw this request."
 msgstr "Du kannst diesen Wunsch nicht mehr löschen."
+
+#~ msgid "Back"
+#~ msgstr "Zurück"

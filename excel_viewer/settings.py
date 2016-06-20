@@ -290,3 +290,7 @@ MESSAGE_TAGS = {
 }
 
 BROKER_URL = os.environ.get("EXCEL_VIEWER_CELERY_BROKER_URL", "redis://")
+
+LOCALE_PATHS = [
+    os.path.join(BASE_DIR, 'locale'),
+]
