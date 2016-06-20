@@ -7,32 +7,22 @@
     {% css document %}
 {% endblock head %}
 
-{% block content %}
-<nav class="navbar navbar-default navbar-fixed-top">
-    <div class="container">
-        <div class="navbar-header">
-            <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#document-navbar-collapse" aria-expanded="false">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-            </button>
-            <span class="navbar-brand">{{ document.name }}</span>
-            <p class="navbar-text">{% trans "Status: " %}{{ document.get_status_display}}</p>
-        </div>
-        <div class="collapse navbar-collapse" id="document-navbar-collapse">
-            <ul class="nav navbar-nav navbar-right">
-                {% if perms.excel_import.change_document %}
-                    <li><a href="{% url "document:edit" document.url_id %}">{% trans "Edit" %}</a></li>
-                {% endif %}
-                <li><a href="{% url "document:download" document.url_id %}">{% trans "Download" %}</a></li>
-                <li><a href="{% url "document:list" %}">{% trans "Back" %}</a></li>
-            </ul>
-        </div>
-    </div>
+{% block navbar-brand %}{{ document.name }}{% endblock %}
+{% block navbar-text %}
+    <p class="navbar-text">{% trans "Status: " %}{{ document.get_status_display}}</p>
+{% endblock navbar-text %}
 
-</nav>
-<table id="cell-table" class="table-bordered table-responsive" style="margin-top: 50px;">
+{% block navbar-items-left %}
+    {% if perms.excel_import.change_document %}
+        <li><a href="{% url "document:edit" document.url_id %}">{% trans "Edit" %}</a></li>
+    {% endif %}
+    <li><a href="{% url "document:download" document.url_id %}">{% trans "Download" %}</a></li>
+    {{ block.super }}
+{% endblock navbar-items-left %}
+
+{% block content %}
+
+<table id="cell-table" class="table-bordered table-responsive">
     {% for cell in cells %}
         {% if cell.first_cell %}<tr>{% endif %}
         <td data-id="{{ cell.id }}" {{ cell.attributes }}

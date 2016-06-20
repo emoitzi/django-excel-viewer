@@ -32,8 +32,51 @@
         {% endfor %}
     </div>
     <div class="container-fluid">
-    {% block content %}
-    {% endblock content %}
+        {% block navbar %}
+        <nav class="navbar navbar-default navbar-fixed-top">
+            <div class="container">
+                <div class="navbar-header">
+                    <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#document-navbar-collapse" aria-expanded="false">
+                        <span class="sr-only">Toggle navigation</span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <span class="navbar-brand">
+                        {% block navbar-brand %}{% endblock %}</span>
+                    {% block navbar-text %}
+                    {% endblock navbar-text %}
+                    </div>
+                <div class="collapse navbar-collapse" id="document-navbar-collapse">
+                    <ul class="nav navbar-nav navbar-left">
+                        {% block navbar-items-left %}
+                        {% endblock navbar-items-left %}
+                    </ul>
+                    <ul class="nav navbar-nav navbar-right">
+                        {% block navbar-items-right %}
+                            <li><a href="{% url "document:list" %}">{% trans "Documents" %}</a></li>
+                            {% if perms.excel_import.add_document %}
+                                <li>
+                                    <a href="{% url 'document:create' %}"> {% trans "Upload" %} </a>
+                                </li>
+                            {% endif %}
+                            <li>
+                                <a href="{% url 'user:settings' %}">{% trans "My Account" %}</a>
+                            </li>
+                            <li>
+                                <a href="{% url 'account_logout' %}" >{% trans "Logout" %}</a>
+                            </li>
+                        {% endblock navbar-items-right %}
+                    </ul>
+                </div>
+            </div>
+        </nav>
+        <div class="navbar-clearfix"></div>
+
+        {% endblock navbar %}
+
+        {% block content %}
+        {% endblock content %}
     </div>
 </body>
 </html>

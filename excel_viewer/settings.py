@@ -205,7 +205,7 @@ STATIC_ROOT = os.path.join(WSGI_DIR, 'static')
 
 MEDIA_ROOT = os.path.join(DATA_DIR, 'media')
 
-LOGIN_REDIRECT_URL = '/'
+LOGIN_REDIRECT_URL = '/document/'
 ACCOUNT_EMAIL_VERIFICATION = "mandatory"
 ACCOUNT_EMAIL_REQUIRED = True
 ACCOUNT_USERNAME_REQUIRED = False

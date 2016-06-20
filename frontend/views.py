@@ -37,7 +37,7 @@ class PermissionRequiredMixin(object):
 @login_required
 def list_documents(request):
     document_list = Document.objects.all_current().order_by("-created")
-    paginator = Paginator(document_list, 20)
+    paginator = Paginator(document_list, 15)
 
     page = request.GET.get('page')
     try:
