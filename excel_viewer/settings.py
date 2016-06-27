@@ -230,6 +230,9 @@ ACCOUNT_AUTHENTICATION_METHOD = "username_email"
 ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
 
 ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.SignupForm'
+SOCIALACCOUNT_FORMS = {
+    'signup' : 'users.socialforms.SocialSignupForm',
+}
 ACCOUNT_ADAPTER = "users.adapter.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "users.adapter.SocialAccountAdapter"
 ACCOUNT_USER_DISPLAY = "users.utils.get_username"

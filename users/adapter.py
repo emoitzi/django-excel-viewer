@@ -42,7 +42,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
         if not allowed_groups:
             return True
 
-        if not sociallogin.accounts.provider == 'facebook':
+        if not sociallogin.account.provider == 'facebook':
             return False
 
         for group in allowed_groups:

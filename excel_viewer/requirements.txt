@@ -8,4 +8,4 @@ model-mommy==1.2.6
 redis==2.10.5
 celery==3.1.23
 pytz
-raven
+raven==4.2.3
