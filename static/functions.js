@@ -216,7 +216,7 @@ var VIEWER = VIEWER || {};
         focusNewValue: function() {
             var isMobile = window.matchMedia("only screen and (max-width: 768px)");
             if (!isMobile.matches) {
-                $('#new_value').focus().select();
+                $('#new_value').select();
             }
             else {
                 $('#new_value').one('click', function() {
