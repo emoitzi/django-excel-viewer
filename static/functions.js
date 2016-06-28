@@ -33,6 +33,22 @@ var VIEWER = VIEWER || {};
 
         }
     };
+    VIEWER.login = {
+        init: function () {
+           $(window).on('resize orientationChange', VIEWER.login.resize);
+        },
+        resize: function () {
+            var isMobile = window.matchMedia("only screen and (max-width: 768px)");
+            if (isMobile.matches) {
+                $('#login-nav').addClass("nav-stacked");
+                $('#start-panel').addClass("small-start-panel");
+            }
+            else {
+                $("#login-nav").removeClass("nav-stacked");
+                $('#start-panel').removeClass("small-start-panel");
+            }
+        }
+    };
     VIEWER.cells = {
         current_cell: null,
         init: function () {
@@ -265,6 +281,7 @@ var VIEWER = VIEWER || {};
             VIEWER.csrf.init();
             VIEWER.cells.init();
             VIEWER.messages.init();
+            VIEWER.login.init();
         }
     };
 

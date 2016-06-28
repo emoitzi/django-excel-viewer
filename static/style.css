@@ -145,7 +145,17 @@
     font-size: large;
 }
 
-
 .navbar-clearfix{
     margin-bottom: 50px;
+}
+
+.start-panel{
+    width: 500px;
+    padding-top: 100px;
+}
+
+.small-start-panel{
+    width: 90%;
+    padding-top: 0;
+    /*padding: 100px 10px 0 10px;*/
 }

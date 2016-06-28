@@ -19,7 +19,9 @@
         </li>
 
         <span class="current">
-            Page {{ documents.number }} of {{ documents.paginator.num_pages }}.
+            {% blocktrans with number=documents.number num_pages=documents.paginator.num_pages %}
+            Page {{ number }} of {{ num_pages }}.
+            {% endblocktrans %}
         </span>
 
         <li class="next {% if not documents.has_next %}disabled{% endif %}">

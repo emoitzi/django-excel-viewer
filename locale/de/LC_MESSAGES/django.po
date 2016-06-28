@@ -7,44 +7,57 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dienstplan Murau\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-20 12:32+0000\n"
-"PO-Revision-Date: 2016-06-20 14:29+0100\n"
-"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
-"Language-Team: LANGUAGE <LL@li.org>\n"
+"POT-Creation-Date: 2016-06-28 17:21+0000\n"
+"PO-Revision-Date: 2016-06-28 19:12+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
 "Language: de\n"
 "MIME-Version: 1.0\n"
 "Content-Type: text/plain; charset=UTF-8\n"
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
-"X-Generator: Poedit 1.5.4\n"
+"X-Generator: Poedit 1.8.7.1\n"
 
-#: templates/account/login.html:7 templates/account/login.html.py:15
-#: templates/account/login.html:67
+#: templates/account/login.html:7 templates/account/tabs/login.html:3
+#: templates/account/tabs/login.html:50
 msgid "Sign In"
-msgstr "Registrieren"
+msgstr "Anmelden"
 
-#: templates/account/login.html:20
-#, python-format
+#: templates/account/login.html:19
+msgid "Login"
+msgstr "Anmelden"
+
+#: templates/account/login.html:22
+#, fuzzy
+#| msgid "Sign In"
+msgid "Signup"
+msgstr "Anmelden"
+
+#: templates/account/tabs/login.html:8
 msgid ""
 "Please sign in with one\n"
-"of your existing third party accounts. Or, <a href=\"%(signup_url)s\">sign "
-"up</a>\n"
-"for a account and sign in below:"
-msgstr ""
-"Bitte melde dich mit einem\n"
-"deiner Drittaccounts an, oder <a href=\"%(signup_url)s\"> registriere</a>\n"
-"dich  für einen  Account und melde dich unten an:"
+"of your existing third party accounts: "
+msgstr "mit Facebook oder Google:"
 
-#: templates/account/login.html:56
-#, python-format
+#: templates/account/tabs/login.html:37
+msgid "Or sign in below:"
+msgstr "Oder melde dich hier an:"
+
+#: templates/account/tabs/login.html:39
 msgid ""
 "If you have not created an account yet, then please\n"
-"<a href=\"%(signup_url)s\">sign up</a> first."
+"<a href=\"#signup\">sign up</a> first."
 msgstr ""
 
-#: templates/account/login.html:66
+#: templates/account/tabs/login.html:49
 msgid "Forgot Password?"
 msgstr "Passwort vergessen?"
+
+#: templates/account/tabs/signup.html:4 templates/account/tabs/signup.html:12
+#, fuzzy
+#| msgid "Sign In"
+msgid "Sign Up"
+msgstr "Anmelden"
 
 #: templates/base.html:8
 msgid "Excel Viewer"

@@ -315,3 +315,7 @@ LOCALE_PATHS = [
 RAVEN_CONFIG = {
     'dsn': os.environ.get("RAVEN_DSN"),
 }
+
+LANGUAGES = (
+    ('de', 'German'),
+)

@@ -142,12 +142,22 @@ class DocumentCreate(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
 
 create = login_required(DocumentCreate.as_view())
 
+from allauth.account import views as allauth_views
+from allauth.account.forms import SignupForm
 
-def index(request):
-    if request.user.is_authenticated():
-        return render(request, "frontend/index.html")
-    return login(request)
 
+class LoginView(allauth_views.LoginView):
+    def get_context_data(self, **kwargs):
+        context = super(LoginView, self).get_context_data(**kwargs)
+        context["signup_form"] = SignupForm()
+        return context
+
+    def get(self, request, *args, **kwargs):
+        if request.user.is_authenticated():
+            return render(request, "frontend/index.html")
+        return super(LoginView, self).get(request)
+
+index = LoginView.as_view()
 
 class ChangeRequestViewSet(viewsets.ModelViewSet):
     queryset = ChangeRequest.objects.all()
