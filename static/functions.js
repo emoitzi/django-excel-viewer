@@ -66,8 +66,10 @@ var VIEWER = VIEWER || {};
         },
         setLabelCoordinates: function() {
             var $label = $(this);
-            var position = $label.parent().offset();
-            position.top -= $label.height() / 2;
+            var $value_span = $label.siblings("span.value");
+            var position = $value_span.offset();
+            position.top -= $label.outerHeight();
+            position.left += $value_span.width() / 2;
             $label.offset(position);
             $label.css('display', 'block');
         },
@@ -167,7 +169,8 @@ var VIEWER = VIEWER || {};
                             var $labels = $cell.children(".request");
                             if ($labels.length == 0) {
                                 var html = $cell.html();
-                                $cell.html(html + '<span class="label label-info request">Request</span>');
+                                var stub = $("#request-stub").html();
+                                $cell.html(html + stub);
                                 VIEWER.cells.initLabels()
                             }
                         }

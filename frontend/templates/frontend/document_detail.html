@@ -31,9 +31,13 @@
                         data-container="body" title="{% trans "Request change" %}"
                         data-toggle="popover" data-trigger="manual" >
             <span class="value">{{ cell.value }}</span>
-            {% if cell.id in pending_requests %}<span class="label label-info request">Request</span> {% endif %}
+            {% if cell.id in pending_requests %}{% include "frontend/snippets/request.html" %}
+            {% endif %}
         </td>
         {% if cell.last_cell %}</tr>{% endif %}
     {% endfor %}
 </table>
+<div id="request-stub" class="hidden">
+{% include "frontend/snippets/request.html" %}
+</div>
 {% endblock content %}

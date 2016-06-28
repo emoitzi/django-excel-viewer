@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Excel viewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-28 17:21+0000\n"
-"PO-Revision-Date: 2016-06-28 19:22+0200\n"
+"POT-Creation-Date: 2016-06-28 19:16+0000\n"
+"PO-Revision-Date: 2016-06-28 21:24+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de\n"
@@ -182,6 +182,10 @@ msgstr "Mein Account"
 #: frontend/templates/frontend/index.html:25
 msgid "Logout"
 msgstr "Abmelden"
+
+#: frontend/templates/frontend/snippets/request.html:2
+msgid "Request"
+msgstr "Wunsch"
 
 #: frontend/views.py:68
 #, python-format
