@@ -11,6 +11,7 @@ from django.db import transaction
 
 from excel_import.models import Cell
 from frontend.tasks import send_new_status_notification_mail, send_editor_mail
+from frontend.utils import get_user_email
 
 
 class ChangeRequest(models.Model):
@@ -117,9 +118,13 @@ class ChangeRequest(models.Model):
             body = render_to_string('frontend/email/new_change_request.txt', {'change_request': self,
                                                                               'document_url': self.document_url()})
 
+            bcc = []
+            for editor in editors:
+                bcc.append(get_user_email(editor))
+
             email = EmailMessage(_("New change request", ),
                                  body,
-                                 bcc=[user.email for user in editors])
+                                 bcc=bcc)
             email.send(fail_silently=True)
 
     def send_new_status_notification_mail(self):
@@ -135,5 +140,5 @@ class ChangeRequest(models.Model):
 
         email = EmailMessage(subject,
                              body,
-                             to=[self.author.email])
+                             to=[get_user_email(self.author)])
         email.send(fail_silently=True)

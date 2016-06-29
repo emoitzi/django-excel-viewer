@@ -67,11 +67,13 @@ var VIEWER = VIEWER || {};
         setLabelCoordinates: function() {
             var $label = $(this);
             var $value_span = $label.siblings("span.value");
-            var position = $value_span.offset();
-            position.top -= $label.outerHeight();
-            position.left += $value_span.width() / 2;
-            $label.offset(position);
-            $label.css('display', 'block');
+            if ($value_span.length > 0) {
+                var position = $value_span.offset();
+                position.top -= $label.outerHeight();
+                position.left += $value_span.width() / 2;
+                $label.offset(position);
+                $label.css('display', 'block');
+            }
         },
         setAcceptRequestButtonHandlers: function($cell) {
             var $popover= $('#popover');
@@ -185,12 +187,7 @@ var VIEWER = VIEWER || {};
             VIEWER.cells.setRequestSubmitHandler($cell);
             VIEWER.cells.setAcceptRequestButtonHandlers($cell);
             VIEWER.cells.setDeleteSubmitHandler($cell);
-            // $('#new_value').click(function (e) {
-            //     e.preventDefault();
-            //     $(this).removeAttr("readonly");
-            // }).keydown(function(e) {
-            //     $(this).removeAttr("readonly");
-            // })
+
         },
         addPopover: function ($cell) {
             $.ajax({
