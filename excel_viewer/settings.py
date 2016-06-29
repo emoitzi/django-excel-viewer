@@ -41,6 +41,10 @@ ALLOWED_HOSTS = [
 # Application definition
 
 INSTALLED_APPS = [
+    'frontend',
+    'excel_import',
+    'users',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,9 +62,6 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.google',
     'raven.contrib.django.raven_compat',
 
-    'frontend',
-    'excel_import',
-    'users',
 ]
 
 SITE_ID = 1
@@ -166,7 +167,7 @@ LOGGING = {
     },
     'loggers': {
         'django': {
-            'handlers': ['sentry','console', 'file', ],
+            'handlers': ['sentry', 'console', 'file', ],
             'level': 'INFO',
             'propagate': True,
         },
@@ -231,7 +232,7 @@ ACCOUNT_DEFAULT_HTTP_PROTOCOL = "http" if DEBUG else "https"
 
 ACCOUNT_SIGNUP_FORM_CLASS = 'users.forms.SignupForm'
 SOCIALACCOUNT_FORMS = {
-    'signup' : 'users.socialforms.SocialSignupForm',
+    'signup': 'users.socialforms.SocialSignupForm',
 }
 ACCOUNT_ADAPTER = "users.adapter.AccountAdapter"
 SOCIALACCOUNT_ADAPTER = "users.adapter.SocialAccountAdapter"

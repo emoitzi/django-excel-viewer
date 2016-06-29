@@ -1,14 +1,27 @@
-
 {% load i18n %}
-
+{% load addcss %}
 <h1>{% trans "Sign Up" %}</h1>
 
-<form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+<form class="signup form-horizontal" id="signup_form" method="post" action="{% url 'account_signup' %}">
   {% csrf_token %}
-  {{ signup_form.as_p }}
+    {% for field in signup_form.hidden_fields %}
+        {{ field }}
+    {% endfor %}
+    {% for field in signup_form.visible_fields %}
+        <div class="form-group">
+            {{ field.errors }}
+            {{ field|label_tag_css:"col-sm-3" }}
+            <div class="col-sm-9">
+                {{ field|addcss:"form-control"}}
+            </div>
+            {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+        </div>
+    {% endfor %}
   {% if redirect_field_value %}
   <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
   {% endif %}
-  <button type="submit">{% trans "Sign Up" %} &raquo;</button>
+  <button class="btn btn-success" type="submit">{% trans "Sign Up" %} &raquo;</button>
 </form>
 

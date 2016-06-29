@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dienstplan Murau\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-28 19:16+0000\n"
+"POT-Creation-Date: 2016-06-29 21:46+0000\n"
 "PO-Revision-Date: 2016-06-28 19:12+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -18,8 +18,8 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.8.7.1\n"
 
-#: templates/account/login.html:7 templates/account/tabs/login.html:3
-#: templates/account/tabs/login.html:50
+#: templates/account/login.html:7 templates/account/tabs/login.html:4
+#: templates/account/tabs/login.html:62
 msgid "Sign In"
 msgstr "Anmelden"
 
@@ -33,27 +33,27 @@ msgstr "Anmelden"
 msgid "Signup"
 msgstr "Anmelden"
 
-#: templates/account/tabs/login.html:8
+#: templates/account/tabs/login.html:9
 msgid ""
 "Please sign in with one\n"
 "of your existing third party accounts: "
 msgstr "mit Facebook oder Google:"
 
-#: templates/account/tabs/login.html:37
+#: templates/account/tabs/login.html:38
 msgid "Or sign in below:"
 msgstr "Oder melde dich hier an:"
 
-#: templates/account/tabs/login.html:39
+#: templates/account/tabs/login.html:40
 msgid ""
 "If you have not created an account yet, then please\n"
 "<a href=\"#signup\">sign up</a> first."
 msgstr ""
 
-#: templates/account/tabs/login.html:49
+#: templates/account/tabs/login.html:61
 msgid "Forgot Password?"
 msgstr "Passwort vergessen?"
 
-#: templates/account/tabs/signup.html:4 templates/account/tabs/signup.html:12
+#: templates/account/tabs/signup.html:3 templates/account/tabs/signup.html:25
 #, fuzzy
 #| msgid "Sign In"
 msgid "Sign Up"
@@ -63,18 +63,18 @@ msgstr "Anmelden"
 msgid "Excel Viewer"
 msgstr "Dienstplan Murau"
 
-#: templates/base.html:57
+#: templates/base.html:67
 msgid "Documents"
 msgstr "Dienstpläne"
 
-#: templates/base.html:60
+#: templates/base.html:70
 msgid "Upload"
 msgstr "Upload"
 
-#: templates/base.html:64
+#: templates/base.html:74
 msgid "My Account"
 msgstr "Mein Account"
 
-#: templates/base.html:67
+#: templates/base.html:77
 msgid "Logout"
 msgstr "Abmelden"

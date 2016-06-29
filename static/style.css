@@ -131,6 +131,8 @@
 .navbar-default {
     background: #b60e0c;
     color: white;
+    border-bottom: 0px;
+    box-shadow: 0 0 10px black;
 }
 
 .navbar-default .navbar-nav > li > a,
@@ -146,7 +148,7 @@
 }
 
 .navbar-clearfix{
-    margin-bottom: 50px;
+    margin-bottom: 60px;
 }
 
 .start-panel{
