@@ -54,7 +54,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     if sociallogin.account.uid == user['id']:
                         logger.debug("User with facebook uid %s found" % user['id'])
                         return True
-                if hasattr(data, "paging"):
+                if "paging" in data:
                     next_url = data["paging"]["next"]
                 else:
                     break

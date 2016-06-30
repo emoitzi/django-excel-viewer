@@ -3,8 +3,7 @@ from unittest.mock import patch
 from allauth.socialaccount.models import SocialAccount, SocialLogin
 from django.contrib.auth import get_user_model
 from django.contrib.auth.models import AnonymousUser
-from django.test import RequestFactory
-from django.utils.unittest import TestCase
+from django.test import RequestFactory, TestCase
 
 from model_mommy import mommy
 
@@ -23,6 +22,20 @@ facebook_query_result = {
       "name": "User2",
       "administrator": True,
       "id": "1234"
+    }
+  ],
+}
+facebook_query_result_paging = {
+  "data": [
+    {
+      "name": "User3",
+      "administrator": False,
+      "id": "234"
+    },
+    {
+      "name": "User4",
+      "administrator": True,
+      "id": "235"
     }
   ],
   "paging": {
@@ -49,6 +62,25 @@ class SocialAdapterTestCase(TestCase):
         with patch("users.adapter.SocialAccountAdapter._fb_query") as fb_query:
             fb_query.return_value = facebook_query_result
             self.assertTrue(adapter.check_facebook_groups(sociallogin))
+            self.assertEqual(1, fb_query.call_count)
+
+    def test_required_facebook_group_paging(self):
+        User = get_user_model()
+        user = mommy.prepare(User)
+        factory = RequestFactory()
+        request = factory.get('/accounts/login/callback/')
+        request.user = AnonymousUser()
+
+        mommy.make(AllowedGroup, id='123')
+        account = SocialAccount(provider='facebook', uid='123')
+        sociallogin = SocialLogin(user=user, account=account)
+
+        adapter = SocialAccountAdapter()
+        with patch("users.adapter.SocialAccountAdapter._fb_query") as fb_query:
+            fb_query.side_effect = [facebook_query_result_paging,
+                                    facebook_query_result, ]
+            self.assertTrue(adapter.check_facebook_groups(sociallogin))
+            self.assertEqual(2, fb_query.call_count)
 
     def test_required_facebook_group_false(self):
         User = get_user_model()
@@ -66,6 +98,7 @@ class SocialAdapterTestCase(TestCase):
             fb_query.return_value = facebook_query_result
 
             self.assertFalse(adapter.check_facebook_groups(sociallogin))
+            self.assertEqual(1, fb_query.call_count)
 
     def test_required_facebook_group_google(self):
         User = get_user_model()
@@ -83,3 +116,4 @@ class SocialAdapterTestCase(TestCase):
             fb_query.return_value = facebook_query_result
 
             self.assertFalse(adapter.check_facebook_groups(sociallogin))
+            self.assertFalse(fb_query.called)

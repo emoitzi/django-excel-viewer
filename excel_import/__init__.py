@@ -1,0 +1,1 @@
+default_app_config = 'excel_import.apps.ExcelImportConfig'
