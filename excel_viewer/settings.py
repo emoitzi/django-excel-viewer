@@ -191,6 +191,16 @@ LOGGING = {
             'handlers': ['console', 'file'],
             'propagate': False,
         },
+        'frontend': {
+            'level': 'INFO',
+            'propagate': True,
+            'handlers': ['sentry'],
+        },
+        'users': {
+            'level': 'INFO',
+            'propagate': True,
+            'handlers': ['sentry'],
+        },
         '': {
             'handlers': ['console', 'file', 'sentry'],
             'level': 'DEBUG',

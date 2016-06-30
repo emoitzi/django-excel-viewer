@@ -4,6 +4,7 @@
 
 <form class="signup form-horizontal" id="signup_form" method="post" action="{% url 'account_signup' %}">
   {% csrf_token %}
+    {{ form.non_field_errors }}
     {% for field in signup_form.hidden_fields %}
         {{ field }}
     {% endfor %}

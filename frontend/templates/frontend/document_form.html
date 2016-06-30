@@ -6,6 +6,7 @@
 <div id="start-panel" class="center-block start-panel">
     <h1>{% trans "Upload xlsx file" %}</h1>
     <form enctype="multipart/form-data" action="" method="post">{% csrf_token %}
+        {{ form.non_field_errors }}
         {% for field in form.visible_fields %}
             <div class="form-group">
                 {{ field.errors }}
