@@ -1,3 +1,4 @@
+import logging
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -12,6 +13,9 @@ from django.db import transaction
 from excel_import.models import Cell
 from frontend.tasks import send_new_status_notification_mail, send_editor_mail
 from frontend.utils import get_user_email
+
+
+logger = logging.getLogger(__name__)
 
 
 class ChangeRequest(models.Model):
@@ -115,8 +119,11 @@ class ChangeRequest(models.Model):
         if not self.reviewed_by:
             editors = User.objects.filter(groups__name='editor')
 
-            body = render_to_string('frontend/email/new_change_request.txt', {'change_request': self,
-                                                                              'document_url': self.document_url()})
+            body = render_to_string('frontend/email/new_change_request.txt',
+                                    {
+                                        'change_request': self,
+                                        'document_url': self.document_url()
+                                    })
 
             bcc = []
             for editor in editors:
@@ -126,19 +133,38 @@ class ChangeRequest(models.Model):
                                  body,
                                  bcc=bcc)
             email.send(fail_silently=True)
+            logger.info("Sent change request notification mail to editors",
+                        extra={
+                            'body': body,
+                            'bcc': bcc,
+                        })
 
     def send_new_status_notification_mail(self):
         subject, body = "",""
         if self.status == ChangeRequest.ACCEPTED:
             subject = _("Your change request has been accepted")
-            body = render_to_string('frontend/email/change_request_accepted.txt', {'change_request': self,
-                                                                                   'document_url': self.document_url()})
+            body = render_to_string(
+                'frontend/email/change_request_accepted.txt',
+                {
+                    'change_request': self,
+                    'document_url': self.document_url()
+                })
         if self.status == ChangeRequest.DECLINED:
             subject = _("Your change request has been declined")
-            body = render_to_string('frontend/email/change_request_declined.txt', {'change_request': self,
-                                                                                   'document_url': self.document_url()})
+            body = render_to_string(
+                'frontend/email/change_request_declined.txt',
+                {
+                    'change_request': self,
+                    'document_url': self.document_url()
+                })
 
+        to = get_user_email(self.author)
         email = EmailMessage(subject,
                              body,
-                             to=[get_user_email(self.author)])
+                             to=[to])
         email.send(fail_silently=True)
+        logger.info("Sent change request status notification mail to author",
+            extra={
+                'body': body,
+                'to': to,
+            })

@@ -15,6 +15,7 @@ def add_social_account_mail(sender, **kwargs):
         first_address = address if not first_address else first_address
     first_address.set_as_primary()
 
+
 class UserConfig(AppConfig):
     name = 'users'
 

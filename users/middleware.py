@@ -11,6 +11,3 @@ class TimezoneMiddleware(object):
         translation.get_language()
         if translation.get_language() == 'de':
             timezone.activate(pytz.timezone('Europe/Vienna'))
-            logger.debug("Activated timezone Europe/Vienna for user %s", request.user)
-        else:
-            logger.debug("No timezone activated for user %s", request.user)

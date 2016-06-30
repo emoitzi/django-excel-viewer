@@ -147,6 +147,12 @@ class DocumentEdit(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
                                     document.name, document.pk))
                     pass
 
+        logger.info("Document updated",
+                    extra={
+                        "request": self.request,
+                        "user": self.request.user,
+                        "document": document,
+                    })
         return HttpResponseRedirect(self.get_success_url())
 
 
@@ -162,6 +168,16 @@ class DocumentCreate(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
 
     def get_success_url(self):
         return reverse("document:document", args=[self.object.pk])
+    
+    def form_valid(self, form):
+        response = super(DocumentCreate, self).form_valid(form)
+        logger.info("Document created",
+                    extra={
+                        "request": self.request,
+                        "user": self.request.user,
+                        "document": self.object,
+                    })
+        return response
 
 
 create = login_required(DocumentCreate.as_view())
@@ -233,6 +249,13 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             response_status = status.HTTP_403_FORBIDDEN
 
         headers = self.get_success_headers(serializer.data)
+        logger.info("New ChangeRequest",
+                    extra={
+                        "change_request": change_request,
+                        "response_status": response_status,
+                        "response_data": serializer.data,
+                        "target_cell": change_request.target_cell
+                    })
         return Response(serializer.data,
                         status=response_status,
                         headers=headers)
@@ -254,11 +277,21 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
                            _("You do not have the permission to accept"
                              " requests."))
             response_status = status.HTTP_403_FORBIDDEN
+
+        logger.info("Updated ChangeRequest",
+                    extra={
+                        "change_request": instance,
+                        "response_status": response_status,
+                        "response_data": data,
+                        "target_cell": instance.target_cell,
+                    })
         return Response(status=response_status, data=data)
 
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         django_request = getattr(request, "_request")
+        response_status = None
+        data = None
         if instance.author == request.user and (
             instance.status == ChangeRequest.PENDING or (
                 ChangeRequest.objects.filter(
@@ -273,15 +306,23 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
             other_requests = ChangeRequest.objects.filter(
                                 target_cell=instance.target_cell,
                                 status=ChangeRequest.PENDING).exists()
-            return Response(status=status.HTTP_200_OK,
-                            data={
-                                'old_value': instance.old_value,
-                                'other_requests': other_requests
-                            })
+            response_status = status.HTTP_200_OK
+            data = {
+                'old_value': instance.old_value,
+                'other_requests': other_requests
+            }
         else:
             messages.error(django_request,
                            _("You cannot withdraw this request."))
-            return Response(status=status.HTTP_403_FORBIDDEN)
+
+            response_status = status.HTTP_403_FORBIDDEN
+
+        logger.info("Canceled ChangeRequest",
+                    extra={
+                        "change_request": instance,
+                        "response_status": status,
+                    })
+        return Response(status=response_status, data=data)
 
 
 @login_required
@@ -319,7 +360,12 @@ def download_document(request, pk):
         document = Document.objects.get(pk=pk)
     except Document.DoesNotExist:
         raise Http404
-
+    logger.info("Document download",
+                extra={
+                    "pk": pk,
+                    "document": document,
+                    "user": request.user,
+                })
     xlsx_bytes = document.create_xlsx()
     response = HttpResponse(xlsx_bytes)
     response["Content-Type"] = \

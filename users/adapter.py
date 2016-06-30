@@ -26,10 +26,11 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
             response = requests.get(url)
         else:
             response = requests.get(
-                ''.join([GRAPH_API_URL,'/', str(group_id),'/members']),
+                ''.join([GRAPH_API_URL, '/', str(group_id), '/members']),
                 params={
                     'access_token': token.token,
-                    'appsecret_proof': compute_appsecret_proof(token.app, token),
+                    'appsecret_proof': compute_appsecret_proof(token.app,
+                                                               token),
                 })
         response.raise_for_status()
         data = response.json()
@@ -52,22 +53,43 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                 next_url = None
                 for user in data['data']:
                     if sociallogin.account.uid == user['id']:
-                        logger.debug("User with facebook uid %s found" % user['id'])
+                        logger.debug("User with facebook uid %s found"
+                                     % user['id'])
                         return True
                 if "paging" in data:
                     next_url = data["paging"]["next"]
                 else:
                     break
-        logger.info("User with facebook uid %s not found" % sociallogin.account.uid)
+        logger.info("User with facebook uid %s not found"
+                    % sociallogin.account.uid)
         return False
 
     def pre_social_login(self, request, sociallogin):
         process = sociallogin.state.get('process', None)
         if process == 'connect':
+            logger.info("Connecting social account",
+                        extra={
+                            "user": request.user,
+                            "provider": sociallogin.account.provider,
+                            "uid": sociallogin.account.uid,
+                        })
             return
         if not sociallogin.is_existing:
             if not self.check_facebook_groups(sociallogin):
-                raise ImmediateHttpResponse(render(request, "users/fb_group_required.html"))
+                logger.warning("Social login denied",
+                               extra={
+                                   'user uid': sociallogin.account.uid,
+                                   'provider': sociallogin.account.provider,
+                               })
+                raise ImmediateHttpResponse(
+                    render(request, "users/fb_group_required.html"))
+        logger.info("pre social login",
+                    extra={
+                        "process": process,
+                        "user": request.user,
+                        "provider": sociallogin.account.provider,
+                        "user_uid": sociallogin.account.uid,
+                    })
 
     def get_connect_redirect_url(self, request, socialaccount):
         return reverse('user:settings')
@@ -82,7 +104,13 @@ class AccountAdapter(DefaultAccountAdapter):
             return email
 
         domain = email.split('@')[1]
-        if not AllowedDomain.objects.filter(domain__iexact=domain, required=True).exists():
-            raise forms.ValidationError(_("Adresses from this domain are not allowed."))
+        if not AllowedDomain.objects.filter(domain__iexact=domain,
+                                            required=True).exists():
+            logger.warning("Signup denied with wrong domain",
+                           extra={
+                               'email': email
+                           })
+            raise forms.ValidationError(_("Adresses from this domain are not"
+                                          " allowed."))
 
         return email

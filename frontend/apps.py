@@ -47,5 +47,8 @@ class FrontendConfig(AppConfig):
     name = 'frontend'
 
     def ready(self):
-        from django.db.models.signals import post_migrate
+        from django.db.models.signals import post_migrate, post_save
+        from excel_import.models import Document
+        from frontend.signals import document_save_handler
         post_migrate.connect(set_frontend_group_permissions)
+        post_save.connect(document_save_handler, sender=Document)
