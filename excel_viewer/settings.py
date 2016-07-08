@@ -322,3 +322,11 @@ BROKER_URL = os.environ.get("EXCEL_VIEWER_CELERY_BROKER_URL", "redis://")
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
 ]
+
+RAVEN_CONFIG = {
+    'dsn': os.environ.get("RAVEN_DSN"),
+}
+
+LANGUAGES = (
+    ('de', 'German'),
+)
