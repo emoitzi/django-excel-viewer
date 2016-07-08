@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Django excel\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-06-29 21:46+0000\n"
+"POT-Creation-Date: 2016-07-14 20:55+0000\n"
 "PO-Revision-Date: 2016-06-17 23:36+0100\n"
 "Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
 "Language-Team: LANGUAGE <LL@li.org>\n"
@@ -18,15 +18,15 @@ msgstr ""
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 "X-Generator: Poedit 1.5.4\n"
 
-#: users/adapter.py:86
+#: users/adapter.py:111
 msgid "Adresses from this domain are not allowed."
 msgstr "Addressen von dieser Domain sind nicht erlaubt."
 
-#: users/forms.py:21 users/forms.py:24
+#: users/forms.py:7 users/forms.py:10
 msgid "First name"
 msgstr "Vorname"
 
-#: users/forms.py:27 users/forms.py:30
+#: users/forms.py:13 users/forms.py:16
 msgid "Last name"
 msgstr "Nachname"
 

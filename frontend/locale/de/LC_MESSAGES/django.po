@@ -1,0 +1,244 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: Excel viewer\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2016-07-14 20:55+0000\n"
+"PO-Revision-Date: 2016-07-14 22:55+0200\n"
+"Last-Translator: \n"
+"Language-Team: \n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 1.8.7.1\n"
+
+#: frontend/models.py:27
+msgid "Pending"
+msgstr " Unerledigt"
+
+#: frontend/models.py:28
+msgid "Accepted"
+msgstr "Angenommen"
+
+#: frontend/models.py:29
+msgid "Declined"
+msgstr "Abgelehnt"
+
+#: frontend/models.py:30
+msgid "Revoked"
+msgstr "Gelöscht"
+
+#: frontend/models.py:143
+msgid "New change request"
+msgstr "Neuer Wunsch"
+
+#: frontend/models.py:156
+msgid "Your change request has been accepted"
+msgstr "Dein Wunsch wurde akzeptiert"
+
+#: frontend/models.py:164
+msgid "Your change request has been declined"
+msgstr "Dein Wunsch wurde abgelehnt"
+
+#: frontend/templates/frontend/cell_popover.html:6
+msgid "Requests"
+msgstr "Wünsche"
+
+#: frontend/templates/frontend/cell_popover.html:26
+#, python-format
+msgid ""
+"\n"
+"                    by %(author)s on %(date)s %(time)s\n"
+"                "
+msgstr ""
+"\n"
+"                    von %(author)s am %(date)s %(time)s\n"
+"                "
+
+#: frontend/templates/frontend/cell_popover.html:37
+msgid "Delete entry"
+msgstr "Eintrag löschen"
+
+#: frontend/templates/frontend/cell_popover.html:43
+msgid "New request"
+msgstr "Neuer Wunsch"
+
+#: frontend/templates/frontend/document_detail.html:12
+msgid "Status: "
+msgstr "Status: "
+
+#: frontend/templates/frontend/document_detail.html:17
+msgid "Edit"
+msgstr "Bearbeiten"
+
+#: frontend/templates/frontend/document_detail.html:19
+msgid "Download"
+msgstr "Download"
+
+#: frontend/templates/frontend/document_detail.html:31
+msgid "Request change"
+msgstr "Wunsch eintragen"
+
+#: frontend/templates/frontend/document_form.html:7
+msgid "Upload xlsx file"
+msgstr "Xlsx-Datei hochladen"
+
+#: frontend/templates/frontend/document_form.html:20
+msgid "Save"
+msgstr "Speichern"
+
+#: frontend/templates/frontend/document_list.html:5
+msgid "Document list"
+msgstr "Dienstpläne"
+
+#: frontend/templates/frontend/document_list.html:18
+msgid "Previous"
+msgstr "Zurück"
+
+#: frontend/templates/frontend/document_list.html:22
+#, python-format
+msgid ""
+"\n"
+"            Page %(number)s of %(num_pages)s.\n"
+"            "
+msgstr ""
+"\n"
+"            Seite %(number)s von %(num_pages)s.\n"
+"            "
+
+#: frontend/templates/frontend/document_list.html:29
+msgid "Next"
+msgstr "Weiter"
+
+#: frontend/templates/frontend/email/change_request_accepted.txt:1
+#, python-format
+msgid ""
+"\n"
+"Hello %(author)s,\n"
+"\n"
+"your change request has been accepted by:  %(reviewed_by)s.\n"
+"\n"
+"Click here to see the document: %(document_url)s\n"
+msgstr ""
+"\n"
+"Hallo %(author)s,\n"
+"\n"
+"dein Wunsch wurde akzeptiert von: %(reviewed_by)s.\n"
+"\n"
+"Hier klicken um zum Dokument zu gelangen: %(document_url)s\n"
+
+#: frontend/templates/frontend/email/change_request_declined.txt:1
+#, python-format
+msgid ""
+"\n"
+"Hello %(author)s,\n"
+"\n"
+"your change request has been declined by:  %(reviewed_by)s.\n"
+"\n"
+"Click here to see the document: %(document_url)s\n"
+msgstr ""
+"\n"
+"Hallo %(author)s,\n"
+"\n"
+"dein Wunsch wurde abgelehnt von: %(reviewed_by)s.\n"
+"\n"
+"Hier klicken um zum Dokument zu gelangen: %(document_url)s\n"
+
+#: frontend/templates/frontend/email/new_change_request.txt:1
+#, python-format
+msgid ""
+"\n"
+"Hello,\n"
+"\n"
+"there is a new change request from user %(author)s.\n"
+"\n"
+"Click here to see the document: %(document_url)s\n"
+msgstr ""
+"\n"
+"Hallo,\n"
+"\n"
+"es gibt einen neuen Wunsch von %(author)s.\n"
+"\n"
+"Hier klicken um zum Dokument zu gelangen: %(document_url)s\n"
+
+#: frontend/templates/frontend/index.html:4
+msgid "Welcome"
+msgstr "Willkommen"
+
+#: frontend/templates/frontend/index.html:7
+msgid "Menu"
+msgstr "Menü"
+
+#: frontend/templates/frontend/index.html:13
+msgid "List documents"
+msgstr "Dienstpläne"
+
+#: frontend/templates/frontend/index.html:17
+msgid "Upload"
+msgstr "Upload"
+
+#: frontend/templates/frontend/index.html:21
+msgid "My Account"
+msgstr "Mein Account"
+
+#: frontend/templates/frontend/index.html:25
+msgid "Logout"
+msgstr "Abmelden"
+
+#: frontend/templates/frontend/snippets/request.html:2
+msgid "Request"
+msgstr "Wunsch"
+
+#: frontend/views.py:73
+#, python-format
+msgid "No %(verbose_name)s found matching the query"
+msgstr "No %(verbose_name)s found matching the query"
+
+#: frontend/views.py:109
+#, python-format
+msgid "%(name)s was updated successfully"
+msgstr "%(name)s erfolgreich aktualisiert"
+
+#: frontend/views.py:166
+#, python-format
+msgid "%(name)s was created successfully"
+msgstr "%(name)s erfolgreich erstellt"
+
+#: frontend/views.py:211
+#, python-format
+msgid "Your change request has been accepted. New value: \"%(new_value)s\""
+msgstr "Dein Wunsch  wurde akzeptiert. Neuer Eintrag: \"%(new_value)s\""
+
+#: frontend/views.py:213
+msgid "Your change request has been placed and is waiting for review."
+msgstr "Dein Wunsch ist gespeichert und wird bearbeitet."
+
+#: frontend/views.py:247
+msgid "We are sorry, this is not allowed on a locked document."
+msgstr "Tut uns leid, das ist auf einem gesperrten Dokument nicht erlaubt."
+
+#: frontend/views.py:274
+#, python-format
+msgid "The change request \"%s\" has been accepted."
+msgstr "Der Wunsch \"%s\" wurde akzeptiert."
+
+#: frontend/views.py:278
+msgid "You do not have the permission to accept requests."
+msgstr "Dir fehlen die Rechte um Wünsche zu akzeptieren."
+
+#: frontend/views.py:306
+msgid "Removed successfully."
+msgstr "Erfolgreich entfernt."
+
+#: frontend/views.py:318
+msgid "You cannot withdraw this request."
+msgstr "Du kannst diesen Wunsch nicht mehr löschen."
+
+#~ msgid "Back"
+#~ msgstr "Zurück"
