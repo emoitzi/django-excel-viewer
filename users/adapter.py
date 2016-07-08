@@ -85,7 +85,7 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                     render(request, "users/fb_group_required.html"))
         logger.info("pre social login",
                     extra={
-                        "process": process,
+                        "allauth_process": process,
                         "user": request.user,
                         "provider": sociallogin.account.provider,
                         "user_uid": sociallogin.account.uid,
