@@ -150,8 +150,8 @@ class DocumentEdit(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
         logger.info("Document updated",
                     extra={
                         "request": self.request,
-                        "user": self.request.user,
-                        "document": document,
+                        "document": form.instance,
+                        "document_pk": form.instance.pk,
                     })
         return HttpResponseRedirect(self.get_success_url())
 
@@ -174,8 +174,8 @@ class DocumentCreate(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
         logger.info("Document created",
                     extra={
                         "request": self.request,
-                        "user": self.request.user,
                         "document": self.object,
+                        "document_pk": self.object.pk,
                     })
         return response
 
@@ -251,6 +251,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
         headers = self.get_success_headers(serializer.data)
         logger.info("New ChangeRequest",
                     extra={
+                        "request": django_request,
                         "change_request": change_request,
                         "response_status": response_status,
                         "response_data": serializer.data,
@@ -280,6 +281,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
 
         logger.info("Updated ChangeRequest",
                     extra={
+                        "request": django_request,
                         "change_request": instance,
                         "response_status": response_status,
                         "response_data": data,
@@ -319,6 +321,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
 
         logger.info("Canceled ChangeRequest",
                     extra={
+                        "request": django_request,
                         "change_request": instance,
                         "response_status": status,
                     })
@@ -364,7 +367,7 @@ def download_document(request, pk):
                 extra={
                     "pk": pk,
                     "document": document,
-                    "user": request.user,
+                    "request": request,
                 })
     xlsx_bytes = document.create_xlsx()
     response = HttpResponse(xlsx_bytes)

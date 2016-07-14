@@ -27,10 +27,14 @@ class ChangeRequest(models.Model):
         (PENDING, _("Pending")),
         (ACCEPTED, _("Accepted")),
         (DECLINED, _("Declined")),
+        (REVOKED,  _("Revoked")),
     )
 
     author = models.ForeignKey(settings.AUTH_USER_MODEL)
-    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL, null=True, blank=True, related_name='+')
+    reviewed_by = models.ForeignKey(settings.AUTH_USER_MODEL,
+                                    null=True,
+                                    blank=True,
+                                    related_name='+')
     new_value = models.CharField(max_length=255)
     old_value = models.CharField(max_length=255, blank=True)
     target_cell = models.ForeignKey(Cell)
@@ -42,6 +46,9 @@ class ChangeRequest(models.Model):
 
     class Meta:
         ordering = ['created_on']
+
+    def __str__(self):
+        return "pk: %d (%s -> %s)" % (self.pk, self.old_value, self.new_value)
 
     def __init__(self, *args, **kwargs):
         super(ChangeRequest, self).__init__(*args, **kwargs)
@@ -68,14 +75,16 @@ class ChangeRequest(models.Model):
             # Decline all pending requests if one is accepted
             if not self.__original_status == self.status and \
                     self.status == ChangeRequest.ACCEPTED:
-                # Manually iterate over all pending requests an calls save to trigger notification mails.
-                # Note that this depends
-                for declined_request in ChangeRequest.objects.filter(target_cell=self.target_cell,
-                                                                     status=ChangeRequest.PENDING):
-                            declined_request.decline(self.reviewed_by)
+                # Manually iterate over all pending requests and call save to
+                # trigger notification mails.
+                for declined_request in ChangeRequest.objects.filter(
+                                    target_cell=self.target_cell,
+                                    status=ChangeRequest.PENDING):
+                    declined_request.decline(self.reviewed_by)
 
         if send_mail:
-            send_editor_mail.delay(self.pk)
+            countdown = settings.EDITOR_MAIL_DELAY or 0
+            send_editor_mail.apply_async((self.pk,), countdown=countdown)
 
         if not self.__original_status == self.status and \
                 not self.author == self.reviewed_by:
@@ -106,9 +115,11 @@ class ChangeRequest(models.Model):
     def document_url(self):
         domain = Site.objects.get_current().domain
         return ''.join([settings.ACCOUNT_DEFAULT_HTTP_PROTOCOL,
-                                '://',
-                                domain,
-                                reverse('document:document', args=[self.target_cell.document_id])])
+                        '://',
+                        domain,
+                        reverse('document:document',
+                                args=[self.target_cell.document_id])
+                        ])
 
     def send_editor_mail(self):
         """
@@ -116,7 +127,7 @@ class ChangeRequest(models.Model):
         Only send if ChangeRequest is not yet accepted
         :return:
         """
-        if not self.reviewed_by:
+        if self.status == ChangeRequest.PENDING:
             editors = User.objects.filter(groups__name='editor')
 
             body = render_to_string('frontend/email/new_change_request.txt',
@@ -132,7 +143,7 @@ class ChangeRequest(models.Model):
             email = EmailMessage(_("New change request", ),
                                  body,
                                  bcc=bcc)
-            email.send(fail_silently=True)
+            email.send()
             logger.info("Sent change request notification mail to editors",
                         extra={
                             'body': body,
@@ -140,7 +151,7 @@ class ChangeRequest(models.Model):
                         })
 
     def send_new_status_notification_mail(self):
-        subject, body = "",""
+        subject, body = "", ""
         if self.status == ChangeRequest.ACCEPTED:
             subject = _("Your change request has been accepted")
             body = render_to_string(
@@ -164,7 +175,7 @@ class ChangeRequest(models.Model):
                              to=[to])
         email.send(fail_silently=True)
         logger.info("Sent change request status notification mail to author",
-            extra={
-                'body': body,
-                'to': to,
-            })
+                    extra={
+                        'body': body,
+                        'to': to,
+                    })

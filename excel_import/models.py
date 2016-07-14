@@ -202,7 +202,7 @@ class Document(models.Model):
             color_value = ''.join(['FF', COLOR_INDEX[color.value][2:]])
         elif color.type == 'theme':
             theme_color = self.get_theme_color(cell)
-            tint = "%02X" % (color.tint * 255)
+            tint = "%02X" % int(color.tint * 255)
             color_value = ''.join([tint, theme_color])
 
         if not color_value:
@@ -277,7 +277,7 @@ class Cell(models.Model):
         ordering = ['id', ]
 
     def __str__(self):
-        return '%s (%s)' % (self.coordinate, self.value)
+        return '%s (Document: %d)' % (self.coordinate, self.document_id)
 
     @property
     def attributes(self):

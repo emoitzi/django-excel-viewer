@@ -3,6 +3,7 @@ import tempfile
 from unittest.mock import patch
 from io import BytesIO
 
+import time
 from django.contrib.auth.models import User, Group, Permission
 from django.core.files.uploadedfile import InMemoryUploadedFile
 from django.core.urlresolvers import reverse

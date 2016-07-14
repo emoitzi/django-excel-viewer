@@ -322,3 +322,6 @@ BROKER_URL = os.environ.get("EXCEL_VIEWER_CELERY_BROKER_URL", "redis://")
 LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
 ]
+
+# Time in seconds after which the editor nofification mail is send.
+EDITOR_MAIL_DELAY = 15 * 60
