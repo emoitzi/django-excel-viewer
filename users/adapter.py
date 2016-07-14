@@ -22,16 +22,14 @@ logger = logging.getLogger(__name__)
 class SocialAccountAdapter(DefaultSocialAccountAdapter):
 
     def _fb_query(self, token, group_id, url=None):
+        params = {'appsecret_proof': compute_appsecret_proof(token.app, token)}
         if url:
-            response = requests.get(url)
+            response = requests.get(url, params=params)
         else:
+            params['access_token'] = token.token
             response = requests.get(
                 ''.join([GRAPH_API_URL, '/', str(group_id), '/members']),
-                params={
-                    'access_token': token.token,
-                    'appsecret_proof': compute_appsecret_proof(token.app,
-                                                               token),
-                })
+                params=params)
         response.raise_for_status()
         data = response.json()
         return data
