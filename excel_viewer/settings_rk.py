@@ -323,6 +323,9 @@ LOCALE_PATHS = [
     os.path.join(BASE_DIR, 'locale'),
 ]
 
+# Time in seconds after which the editor nofification mail is send.
+EDITOR_MAIL_DELAY = 15 * 60
+
 RAVEN_CONFIG = {
     'dsn': os.environ.get("RAVEN_DSN"),
 }
