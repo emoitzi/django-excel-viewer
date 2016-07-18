@@ -325,3 +325,11 @@ LOCALE_PATHS = [
 
 # Time in seconds after which the editor nofification mail is send.
 EDITOR_MAIL_DELAY = 15 * 60
+
+RAVEN_CONFIG = {
+    'dsn': os.environ.get("RAVEN_DSN"),
+}
+
+LANGUAGES = (
+    ('de', 'German'),
+)

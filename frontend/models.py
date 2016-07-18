@@ -1,4 +1,5 @@
 import logging
+
 from django.contrib.sites.models import Site
 from django.core.urlresolvers import reverse
 from django.db import models
@@ -83,7 +84,7 @@ class ChangeRequest(models.Model):
                     declined_request.decline(self.reviewed_by)
 
         if send_mail:
-            countdown = settings.EDITOR_MAIL_DELAY or 0
+            countdown = getattr(settings, "EDITOR_MAIL_DELAY", 0)
             send_editor_mail.apply_async((self.pk,), countdown=countdown)
 
         if not self.__original_status == self.status and \

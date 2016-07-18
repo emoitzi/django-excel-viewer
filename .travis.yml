@@ -30,5 +30,5 @@ deploy:
     secure: "f7R6dzZ3NkSBmEPF5+ofxm8BpTtiwlwHn6BaHV1M4624LhcXtjq8yy/QXiNG9vMDnekBnlThE+n2KtSDENXzb44P+ldQqcRw63/0gb8PEm2cWkmQ0oDxsoEdddkqa34SeLI/Kw7DYU4rgcQDpZQr2rdcuovNDzz5e3nscpECiUy489vXgfHSTuQpnwgHyI+fHFlQ100Zv2Yc/QPQ4NERJrffrSu93EZDJ7lU8U7bUro7JVeSf97amtBYHLN7b7eDw1eUfxex8rNT7h3PXRgC6FpVSBw/Lh4MZUrDj+Uo3yWZYhlqIRxZ0tVtP/t0Zj0jIcnupwWeOZZT4oPVt6fubJ3pjDjYNM3tMjvsvnvpfx2QlbfLTxn+HUBi9kaY3/d+qYTcj54yyT6jzWE/mfL73jWJKQvFZfjvPwVAQuCZb9HGqbtN6wNbX9gV8KsC7nGIr6RUr3X/dcswcbmL3yA6lxloGrAbdfTZH02Oi0x9F+YXJCLb4bfP8wnCUjjbl+0aDgUe42CyYZJycMxR19iyJRU+onrJa8BdcyhvjVLnLfV0J5z8MyDm3GMr0xq8O+rWJ3A3ICg6fSUNgY77zxn/Sj+t9Kcz+EuNGsPTh9RzlQhqiKxhkF0IMOIL+4YuYmz4CudupcFPyysd1mXTVrVckokPi3cIgoG7QaTjTcRVzEU="
   on:
     repo: emoitzi/django-excel-viewer
-    branch: rk
-  deployment_branch: rk
+    branch: master
+  deployment_branch: master
