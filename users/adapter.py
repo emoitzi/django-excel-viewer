@@ -54,9 +54,9 @@ class SocialAccountAdapter(DefaultSocialAccountAdapter):
                         logger.debug("User with facebook uid %s found"
                                      % user['id'])
                         return True
-                if "paging" in data:
+                try:
                     next_url = data["paging"]["next"]
-                else:
+                except KeyError:
                     break
         logger.info("User with facebook uid %s not found"
                     % sociallogin.account.uid)
