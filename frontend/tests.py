@@ -16,7 +16,8 @@ from rest_framework import status
 from model_mommy import mommy
 
 from excel_import.models import Document, Cell
-from frontend.models import ChangeRequest
+from frontend.models import ChangeRequest, TemporaryDocument
+from frontend.views import FILE_SESSION_NAME_KEY, FILE_SESSION_PK_KEY
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp(),
@@ -54,11 +55,17 @@ class FrontendTest(TestCase):
     def test_edit_document_creates_new_document(self, parse_file):
         document = Document.objects.create(file=self.file, name="Test")
         parse_file.reset_mock()
+        temp_file = mommy.make(TemporaryDocument,
+                               file=self.file)
         self.user.groups.add(Group.objects.get(name='editor'))
+        session = self.client.session
+        session[FILE_SESSION_NAME_KEY] = "test.xlsx"
+        session[FILE_SESSION_PK_KEY] = temp_file.pk
+        session.save()
 
-        response = self.client.post(reverse('document:edit', args=[document.pk]),  {'file': self.file,
-                                                                                    'name': 'Test',
-                                                                                    'status': Document.LOCKED})
+        response = self.client.post(reverse('document:edit_details', args=[document.pk]), {'worksheet': temp_file.pk,
+                                                                                           'name': 'Test',
+                                                                                           'status': Document.LOCKED})
         self.assertEqual(302, response.status_code)
         parse_file.assert_any_call()
         document.refresh_from_db()
@@ -77,11 +84,17 @@ class FrontendTest(TestCase):
         document = Document.objects.create(file=self.file, name="Test", current=False)
         document2 = Document.objects.create(file=self.file, name="Test", current=True, replaces=document)
         parse_file.reset_mock()
+        temp_file = mommy.make(TemporaryDocument,
+                               file=self.file)
         self.user.groups.add(Group.objects.get(name='editor'))
+        session = self.client.session
+        session[FILE_SESSION_NAME_KEY] = "test.xlsx"
+        session[FILE_SESSION_PK_KEY] = temp_file.pk
+        session.save()
 
-        response = self.client.post(reverse('document:edit', args=[document.pk]),  {'file': self.file,
-                                                                                    'name': 'Test',
-                                                                                    'status': Document.LOCKED})
+        response = self.client.post(reverse('document:edit_details', args=[document.pk]), {'worksheet': temp_file.pk,
+                                                                                           'name': 'Test',
+                                                                                           'status': Document.LOCKED})
         self.assertEqual(302, response.status_code)
         parse_file.assert_any_call()
         document2.refresh_from_db()
@@ -140,15 +153,30 @@ class FrontendTest(TestCase):
         self.assertListEqual([change_request.author.email], mail.outbox[0].to)
 
     def test_edit_document_copies_pending_change_requests(self):
-        document = Document.objects.create(file=self.file, name="Test", status=Document.REQUEST_ONLY)
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
         cell = document.cell_set.get(coordinate='A2')
+        temp_file = mommy.make(TemporaryDocument,
+                               file=self.file)
         author = mommy.make(settings.AUTH_USER_MODEL)
         self.user.groups.add(Group.objects.get(name='editor'))
-        change_request = ChangeRequest.objects.create(author=author, new_value="test", target_cell=cell)
+        change_request = ChangeRequest.objects.create(author=author,
+                                                      new_value="test",
+                                                      target_cell=cell)
 
-        response = self.client.post(reverse('document:edit', args=[document.pk]), {'file': self.file,
-                                                                                   'name': 'Test',
-                                                                                   'status': Document.REQUEST_ONLY})
+        session = self.client.session
+        session[FILE_SESSION_NAME_KEY] = "test.xlsx"
+        session[FILE_SESSION_PK_KEY] = temp_file.pk
+        session.save()
+
+        response = self.client.post(reverse('document:edit_details',
+                                            args=[document.pk]),
+                                    {
+                                     'name': 'Test',
+                                     'worksheet': 0,
+                                     'status': Document.REQUEST_ONLY,
+                                     })
 
         self.assertEqual(302, response.status_code)
 
@@ -189,7 +217,7 @@ class FrontendTest(TestCase):
 
         cell = request.target_cell
         response = self.client.post("/api/change-request/", {"new_value": "new-value",
-                                                            "target_cell": cell.id})
+                                                             "target_cell": cell.id})
 
         cell.refresh_from_db()
         self.assertEqual(status.HTTP_202_ACCEPTED, response.status_code)
@@ -396,6 +424,72 @@ class FrontendTest(TestCase):
         self.assertEqual(403, response.status_code)
         self.assertEqual("test", cell.value)
 
+    @patch('excel_import.models.Document.parse_file')
+    def test_edit_file_creates_temp_file(self, parse_file):
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
+
+        self.user.groups.add(Group.objects.get(name='editor'))
+
+        self.client.post(reverse('document:edit', args=[document.pk]),
+                         {
+                             'file-file': self.file,
+                         })
+
+        self.assertEqual(TemporaryDocument.objects.count(), 1)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_edit_file_redirects_to_details(self, parse_file):
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
+
+        self.user.groups.add(Group.objects.get(name='editor'))
+
+        response = self.client.post(reverse('document:edit', args=[document.pk]),
+                                    {
+                                        'file-file': self.file,
+                                    })
+
+        self.assertRedirects(response, reverse('document:edit_details', args=[document.pk]))
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_edit_file_updates_document(self, parse_file):
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
+
+        self.user.groups.add(Group.objects.get(name='editor'))
+        parse_file.reset_mock()
+
+        self.client.post(reverse('document:edit', args=[document.pk]),
+                                    {
+                                        'details-name': 'new-name',
+                                        'details-status': Document.LOCKED
+                                    })
+
+        parse_file.assert_not_called()
+        document.refresh_from_db()
+        self.assertEqual(document.name, 'new-name')
+        self.assertEqual(document.status, Document.LOCKED)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_edit_file_redirects_to_document(self, parse_file):
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
+
+        self.user.groups.add(Group.objects.get(name='editor'))
+        parse_file.reset()
+
+        response = self.client.post(reverse('document:edit', args=[document.pk]),
+                                    {
+                                        'details-name': 'new-name',
+                                        'details-status': Document.LOCKED
+                                    })
+        self.assertRedirects(response, reverse('document:document', args=[document.pk]))
+
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp(),
                    MAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
@@ -439,7 +533,7 @@ class ChangeRequestModelTests(TestCase):
         request = mommy.prepare(ChangeRequest,
                                 target_cell=cell,
                                 author=author)
-        reviewer = mommy.make(User)
+        mommy.make(User)
         request.revoke()
 
         self.assertIsNotNone(request.id)
@@ -452,9 +546,9 @@ class ChangeRequestModelTests(TestCase):
             cell = mommy.make(Cell)
         author = mommy.make(settings.AUTH_USER_MODEL)
         request1 = mommy.make(ChangeRequest,
-                                 target_cell=cell,
-                                 author=author,
-                                 status=ChangeRequest.PENDING)
+                              target_cell=cell,
+                              author=author,
+                              status=ChangeRequest.PENDING)
         request2 = mommy.make(ChangeRequest,
                               target_cell=request1.target_cell,
                               status=ChangeRequest.PENDING)

@@ -1,5 +1,9 @@
 import logging
 import os, sys
+
+from django.conf import settings
+from django.utils.functional import cached_property
+
 import locale
 
 from django.contrib import messages
@@ -9,7 +13,8 @@ from django.core.paginator import Paginator, PageNotAnInteger, EmptyPage
 from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse,\
                         HttpResponseForbidden
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404
+from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.http import Http404
@@ -22,10 +27,14 @@ from rest_framework import status
 from rest_framework.response import Response
 
 from excel_import.models import Document, Cell
-from frontend.models import ChangeRequest
+from frontend.forms import TempFileForm, DocumentDetailForm, DocumentForm
+from frontend.models import ChangeRequest, TemporaryDocument
 from frontend.serializers import ChangeRequestSerializer
 
 logger = logging.getLogger(__name__)
+
+FILE_SESSION_NAME_KEY = "current_temp_file_name"
+FILE_SESSION_PK_KEY = "current_temp_file_pk"
 
 
 class PermissionRequiredMixin(object):
@@ -60,6 +69,71 @@ def list_documents(request):
     }
 
     return render(request, "frontend/document_list.html", context)
+
+
+def create_temporary_file(request, file):
+    """
+    Creates a temporary file. Is not a view!
+    :param request:
+    :param file:
+    """
+
+    media_path = ''.join(
+        [
+            request.user.username,
+            '_',
+            file.name,
+        ]
+    )
+    path = ''.join(
+        [
+            settings.MEDIA_ROOT,
+            '/',
+            media_path,
+        ])
+    request.session[FILE_SESSION_PK_KEY] = media_path
+    disk_file = open(path, 'wb+')
+    for chunk in file.chunks():
+        disk_file.write(chunk)
+    disk_file.close()
+
+
+class TempFileMixin(object):
+
+    @cached_property
+    def session_file(self):
+        temp_file_pk = self.request.session.get(FILE_SESSION_PK_KEY)
+        temp_document = TemporaryDocument.objects.get(pk=temp_file_pk)
+        return temp_document.file
+
+    def get_context_data(self, **kwargs):
+        context = super(TempFileMixin, self).get_context_data(**kwargs)
+        context.update(
+            {
+                "file": self.request.session.get(FILE_SESSION_NAME_KEY),
+            }
+        )
+        return context
+
+    def get_form_kwargs(self):
+        """
+        Returns the keyword arguments for instantiating the form.
+        """
+        kwargs = super(TempFileMixin, self).get_form_kwargs()
+
+        kwargs.update({
+           "file": self.session_file,
+        })
+
+        return kwargs
+
+    def form_valid(self, form):
+        """
+        Overloaded form valid to remove session variables
+        """
+        del self.request.session[FILE_SESSION_NAME_KEY]
+        del self.request.session[FILE_SESSION_PK_KEY]
+        return super(TempFileMixin, self).form_valid(form)
 
 
 class DocumentView(DetailView):
@@ -104,9 +178,74 @@ class DocumentView(DetailView):
 document_view = login_required(DocumentView.as_view())
 
 
-class DocumentEdit(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
-    model = Document
-    fields = ['file', 'name', 'status']
+def update_document_file(document):
+    pk = document.pk
+    document.replaces_id = document.replaces_id or document.pk
+    document.pk = None
+    document.created = None
+    document.save()
+
+    requests = ChangeRequest.objects.filter(
+        target_cell__document_id=document.replaces_id,
+        status=ChangeRequest.PENDING)
+
+    for request in requests:
+        try:
+            request.target_cell = document.cell_set.get(
+                coordinate=request.target_cell.coordinate)
+            request.save()
+        except Cell.DoesNotExist:
+            logger.debug("Cannot find cell with coordinate %s in new "
+                         "document %s(%d)"
+                         % (request.target_cell.coordinate,
+                            document.name, pk))
+
+
+def edit_document(request, pk):
+    document = get_object_or_404(Document, pk=pk)
+
+    if request.method == "POST":
+        file_form = TempFileForm(request.POST,
+                                 request.FILES,
+                                 prefix='file')
+        detail_form = DocumentForm(request.POST,
+                                   instance=document,
+                                   prefix='details')
+
+        if file_form.is_valid():
+            instance = file_form.save()
+            request.session[FILE_SESSION_PK_KEY] = instance.pk
+
+            original_filename = file_form.cleaned_data["file"].name
+            request.session[FILE_SESSION_NAME_KEY] = original_filename
+
+            return HttpResponseRedirect(reverse("document:edit_details",
+                                                args=[pk]))
+        elif detail_form.is_valid():
+            detail_form.save()
+            return HttpResponseRedirect(reverse("document:document",
+                                                args=[pk]))
+    else:
+        file_form = TempFileForm(prefix='file')
+        detail_form = DocumentForm(instance=document,
+                                   prefix='details')
+
+    context = {
+        "file_form": file_form,
+        "detail_form": detail_form,
+    }
+
+    return render(request,
+                  "frontend/document_edit.html",
+                  context,
+                  )
+
+
+class DocumentEditDetails(PermissionRequiredMixin,
+                          SuccessMessageMixin,
+                          TempFileMixin,
+                          UpdateView):
+    form_class = DocumentDetailForm
     template_name = "frontend/document_form.html"
     success_message = _("%(name)s was updated successfully")
     required_permission = 'excel_import.change_document'
@@ -121,49 +260,63 @@ class DocumentEdit(PermissionRequiredMixin, SuccessMessageMixin, UpdateView):
         return reverse("document:document", args=[document_id])
 
     def form_valid(self, form):
-        copy_change_requests = False
-        document = None
-        if 'file' in form.changed_data:
-            # new file uploaded, copy current instance
-            document = form.instance
-            document.replaces_id = document.replaces_id or document.pk
-            document.pk = None
-            document.created = None
-            copy_change_requests = True
-        form.save()
-
-        if copy_change_requests:
-            requests = ChangeRequest.objects.filter(
-                target_cell__document_id=document.replaces_id,
-                status=ChangeRequest.PENDING)
-
-            for request in requests:
-                try:
-                    request.target_cell = document.cell_set.get(
-                        coordinate=request.target_cell.coordinate)
-                    request.save()
-                except Cell.DoesNotExist:
-                    logger.debug("Cannot find cell with coordinate %s in new "
-                                 "document %s(%d)"
-                                 % (request.target_cell.coordinate,
-                                    document.name, document.pk))
-                    pass
+        document = form.save(commit=False)
+        update_document_file(document)
 
         logger.info("Document updated",
                     extra={
                         "request": self.request,
-                        "document": form.instance,
-                        "document_pk": form.instance.pk,
+                        "document": document,
+                        "document_pk": document.pk,
                     })
         return HttpResponseRedirect(self.get_success_url())
 
 
-edit_document = login_required(DocumentEdit.as_view())
+edit_details = login_required(DocumentEditDetails.as_view())
+
+#
+# def create(request):
+#
+#     if request.method == "POST":
+#         form = TempFileForm(request.POST, request.FILES)
+#         if form.is_valid():
+#             file = form.cleaned_data["file"]
+#             create_temporary_file(request, file)
+#             return HttpResponseRedirect(reverse("document:create_details"))
+#     else:
+#         form = TempFileForm()
+#
+#     return render(request,
+#                   "frontend/document_form.html",
+#                   {"form": form})
 
 
-class DocumentCreate(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
-    model = Document
-    fields = ['file', 'name', 'status']
+class DocumentCreate(PermissionRequiredMixin,
+                     CreateView):
+    model = TemporaryDocument
+    fields = ['file']
+    required_permission = 'excel_import.add_document'
+
+    def get_success_url(self):
+        return reverse("document:create_details")
+
+    def form_valid(self, form):
+        response = super(DocumentCreate, self).form_valid(form)
+        self.request.session[FILE_SESSION_PK_KEY] = self.object.pk
+
+        original_filename = form.cleaned_data["file"].name
+        self.request.session[FILE_SESSION_NAME_KEY] = original_filename
+        return response
+
+
+create = login_required(DocumentCreate.as_view())
+
+
+class DocumentCreateDetails(PermissionRequiredMixin,
+                            SuccessMessageMixin,
+                            TempFileMixin,
+                            CreateView):
+    form_class = DocumentDetailForm
     template_name = "frontend/document_form.html"
     success_message = _("%(name)s was created successfully")
     required_permission = 'excel_import.add_document'
@@ -171,18 +324,7 @@ class DocumentCreate(PermissionRequiredMixin, SuccessMessageMixin, CreateView):
     def get_success_url(self):
         return reverse("document:document", args=[self.object.pk])
     
-    def form_valid(self, form):
-        response = super(DocumentCreate, self).form_valid(form)
-        logger.info("Document created",
-                    extra={
-                        "request": self.request,
-                        "document": self.object,
-                        "document_pk": self.object.pk,
-                    })
-        return response
-
-
-create = login_required(DocumentCreate.as_view())
+create_details = login_required(DocumentCreateDetails.as_view())
 
 
 class LoginView(allauth_views.LoginView):
@@ -294,7 +436,6 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
     def destroy(self, request, *args, **kwargs):
         instance = self.get_object()
         django_request = getattr(request, "_request")
-        response_status = None
         data = None
         if instance.author == request.user and (
             instance.status == ChangeRequest.PENDING or (

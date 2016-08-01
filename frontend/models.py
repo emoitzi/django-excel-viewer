@@ -180,3 +180,7 @@ class ChangeRequest(models.Model):
                         'body': body,
                         'to': to,
                     })
+
+
+class TemporaryDocument(models.Model):
+    file = models.FileField()

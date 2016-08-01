@@ -7,8 +7,8 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Dienstplan Murau\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-07-14 20:55+0000\n"
-"PO-Revision-Date: 2016-06-28 19:12+0200\n"
+"POT-Creation-Date: 2016-08-15 09:45+0000\n"
+"PO-Revision-Date: 2016-08-15 11:49+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
 "Language: de\n"
@@ -28,8 +28,6 @@ msgid "Login"
 msgstr "Anmelden"
 
 #: templates/account/login.html:22
-#, fuzzy
-#| msgid "Sign In"
 msgid "Signup"
 msgstr "Anmelden"
 
@@ -54,8 +52,6 @@ msgid "Forgot Password?"
 msgstr "Passwort vergessen?"
 
 #: templates/account/tabs/signup.html:3 templates/account/tabs/signup.html:26
-#, fuzzy
-#| msgid "Sign In"
 msgid "Sign Up"
 msgstr "Anmelden"
 

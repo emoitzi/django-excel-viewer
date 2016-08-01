@@ -41,6 +41,8 @@ def set_frontend_group_permissions(sender, **kwargs):
         editor_group.permissions.add(add_document, change_document)
     except Permission.DoesNotExist:
         pass
+    except Group.DoesNotExist:
+        pass
 
 
 class FrontendConfig(AppConfig):

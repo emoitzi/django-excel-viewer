@@ -63,6 +63,7 @@ class Document(models.Model):
     created = models.DateTimeField(auto_now_add=True)
     current = models.BooleanField(default=True)
     status = models.IntegerField(choices=STATUS, default=OPEN)
+    worksheet = models.IntegerField(default=0)
 
     objects = DocumentManager()
 
@@ -111,7 +112,7 @@ class Document(models.Model):
 
     def create_skip_and_start_list(self):
         start_cells = dict()
-        work_sheet = self.workbook.worksheets[0]
+        work_sheet = self.workbook.worksheets[self.worksheet]
 
         skip_list = work_sheet.merged_cells.copy()
         for cell_range in work_sheet.merged_cell_ranges:
@@ -144,7 +145,7 @@ class Document(models.Model):
 
     def create_xlsx(self):
         workbook = self.workbook
-        work_sheet = workbook.worksheets[0]
+        work_sheet = workbook.worksheets[self.worksheet]
 
         for cell in self.cell_set.all():
             work_sheet[cell.coordinate].value = cell.value
@@ -232,7 +233,7 @@ class Document(models.Model):
         return db_cell
 
     def parse_file(self):
-        work_sheet = self.workbook.worksheets[0]
+        work_sheet = self.workbook.worksheets[self.worksheet]
 
         cell_list = list()
         for row in work_sheet.rows:
