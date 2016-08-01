@@ -255,7 +255,7 @@ class ChangeRequestViewSet(viewsets.ModelViewSet):
                         "change_request": change_request,
                         "response_status": response_status,
                         "response_data": serializer.data,
-                        "target_cell": change_request.target_cell
+                        "target_cell": target_cell
                     })
         return Response(serializer.data,
                         status=response_status,

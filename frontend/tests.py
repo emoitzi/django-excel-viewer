@@ -383,6 +383,19 @@ class FrontendTest(TestCase):
 
         self.assertEqual(status.HTTP_403_FORBIDDEN, response.status_code)
 
+    @patch('excel_import.models.Document.parse_file')
+    def test_deny_request_on_locked_document(self, parse_file):
+        cell = mommy.make(Cell, document__status=Document.LOCKED, value="test")
+
+        response = self.client.post("/api/change-request/",
+                                    {
+                                        "new_value": "new-value",
+                                        "target_cell": cell.id,
+                                    })
+        cell.refresh_from_db()
+        self.assertEqual(403, response.status_code)
+        self.assertEqual("test", cell.value)
+
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp(),
                    MAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend',
