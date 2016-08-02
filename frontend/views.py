@@ -1,4 +1,6 @@
 import logging
+import os, sys
+import locale
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
@@ -377,3 +379,20 @@ def download_document(request, pk):
     response['Content-Disposition'] = \
         'attachment; filename="%s.xlsx"' % document.name
     return response
+
+
+def locale_view(request):
+    response_string = ""
+    if 'LANG' in os.environ:
+        response_string += '<p>LANG=%s' % os.environ['LANG']
+    else:
+        response_string += '<p>LANG is not set'
+    if 'LC_ALL' in os.environ:
+        response_string += '<p>LC_ALL=%s' % os.environ['LC_ALL']
+    else:
+        response_string += '<p>LC_ALL is not set'
+    response_string += "<p>sys.getfilesystemencoding()=%s" %\
+                       sys.getfilesystemencoding()
+    response_string += "<p>locale.getdefaultlocale()=%s" %\
+                       str(locale.getdefaultlocale())
+    return HttpResponse(response_string)

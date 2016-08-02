@@ -31,9 +31,14 @@ urlpatterns = [
     url(r'^document/', include('frontend.urls', namespace='document')),
     url(r'^accounts/', include('allauth.urls')),
     url(r'^$', 'frontend.views.index', name="index"),
-    url(r'^robots\.txt$', lambda r: HttpResponse("User-agent: *\nDisallow: /", content_type="text/plain")),
+
+    url(r'^robots\.txt$',
+        lambda r: HttpResponse("User-agent: *\nDisallow: /",
+                               content_type="text/plain")),
     url(r'^api/', include(router.urls)),
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    url(r'^api-auth/', include('rest_framework.urls',
+                               namespace='rest_framework')),
     url(r'^user/', include('users.urls', namespace='user')),
+    url(r'^show-locale/$', 'frontend.views.locale_view')
 ]
 urlpatterns += staticfiles_urlpatterns()
