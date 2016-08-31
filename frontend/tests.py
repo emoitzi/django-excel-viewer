@@ -434,7 +434,7 @@ class FrontendTest(TestCase):
 
         self.client.post(reverse('document:edit', args=[document.pk]),
                          {
-                             'file-file': self.file,
+                             'file': self.file,
                          })
 
         self.assertEqual(TemporaryDocument.objects.count(), 1)
@@ -449,7 +449,7 @@ class FrontendTest(TestCase):
 
         response = self.client.post(reverse('document:edit', args=[document.pk]),
                                     {
-                                        'file-file': self.file,
+                                        'file': self.file,
                                     })
 
         self.assertRedirects(response, reverse('document:edit_details', args=[document.pk]))

@@ -1,0 +1,41 @@
+{% load addcss %}
+{% load static %}
+<form enctype="multipart/form-data" action="{{ action }}" method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    {% with field=form.name %}
+        <div class="form-group">
+            {{ form.name.label_tag }}
+            {{ field|addcss:"form-control"}}
+            {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {{ field.errors }}
+        </div>
+    {% endwith %}
+    {% with field=form.status %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {{ field|addcss:"form-control"}}
+            {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {{ field.errors }}
+        </div>
+    {% endwith %}
+    {% with field=form.worksheet %}
+        <div class="form-group">
+            {{ field.label_tag }}
+            {% for radio in field %}
+                <div class="radio">
+                    {{ radio }}
+                </div>
+            {% endfor %}
+            {% if field.help_text %}
+            <p class="help">{{ field.help_text|safe }}</p>
+            {% endif %}
+            {{ field.errors }}
+        </div>
+    {% endwith %}
+    <input class="btn btn-success" type="submit" value="{{ button_title }}" />
+</form>

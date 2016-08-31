@@ -7,36 +7,13 @@
     <h1>{% trans "Edit document" %}</h1>
 
     <h2>{% trans "Change document file" %}</h2>
-    <form enctype="multipart/form-data" action="" method="post">{% csrf_token %}
-        {{ file_form.non_field_errors }}
-        {% for field in file_form.visible_fields %}
-            <div class="form-group">
-                {{ field.label_tag }}
-                {{ field|addcss:"form-control"}}
-                {% if field.help_text %}
-                <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-                {{ field.errors }}
-            </div>
-        {% endfor %}
-        <input class="btn btn-success" type="submit" value="{% trans "Update file"%}" />
-    </form>
-
-    <h2>{% trans "Change details" %}</h2>
-    <form action="" method="post">{% csrf_token %}
-        {{ detail_form.non_field_errors }}
-        {% for field in detail_form.visible_fields %}
-            <div class="form-group">
-                {{ field.label_tag }}
-                {{ field|addcss:"form-control"}}
-                {% if field.help_text %}
-                <p class="help">{{ field.help_text|safe }}</p>
-                {% endif %}
-                {{ field.errors }}
-            </div>
-        {% endfor %}
-        <input class="btn btn-success" type="submit" value="{% trans "Save"%}" />
-    </form>
+    {% trans "Update file" as button_title%}
+    {% include "frontend/snippets/form.html" with form=file_form %}
+    <div id="detail_div">
+        <h2>{% trans "Change details" %}</h2>
+        {% trans "Save" as button_title%}
+        {% include "frontend/snippets/form.html" with form=detail_form%}
+    </div>
 
 </div>
 {% endblock content %}

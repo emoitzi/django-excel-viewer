@@ -1,6 +1,7 @@
 from django import forms
-from django.conf import settings
 from django.forms import ModelForm
+
+from parsley.decorators import parsleyfy
 
 from excel_import.models import Document
 from excel_import.utils import list_worksheets_from_file
@@ -27,17 +28,17 @@ class DocumentForm(forms.ModelForm):
         fields = ['name', 'status']
 
 
+@parsleyfy
 class DocumentDetailForm(forms.ModelForm):
     """
     For for document detail views
     """
     def __init__(self, *args, **kwargs):
         self.file = kwargs.pop("file")
-
         super(DocumentDetailForm, self).__init__(*args, **kwargs)
 
-        worksheet_choices = list_worksheets_from_file(self.file.path)
-        self.fields["worksheet"].widget = forms.Select(
+        worksheet_choices = list_worksheets_from_file(self.file)
+        self.fields["worksheet"].widget = forms.RadioSelect(
             choices=worksheet_choices)
 
     def save(self, commit=True):
