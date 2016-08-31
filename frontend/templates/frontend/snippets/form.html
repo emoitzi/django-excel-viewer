@@ -1,5 +1,6 @@
 {% load addcss %}
-<form enctype="multipart/form-data" action="" method="post">
+{% load static %}
+<form enctype="multipart/form-data" action="{{ action }}" method="post">
     {% csrf_token %}
     {{ form.non_field_errors }}
     {% for field in form.visible_fields %}

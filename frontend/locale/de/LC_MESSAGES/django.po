@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: Excel viewer\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2016-08-15 09:45+0000\n"
+"POT-Creation-Date: 2016-08-31 20:39+0000\n"
 "PO-Revision-Date: 2016-08-15 11:48+0200\n"
 "Last-Translator: \n"
 "Language-Team: \n"
@@ -93,16 +93,17 @@ msgstr "Dienstplan ändern"
 msgid "Change document file"
 msgstr "Datei ändern"
 
-#: frontend/templates/frontend/document_edit.html:22
+#: frontend/templates/frontend/document_edit.html:10
 msgid "Update file"
 msgstr "Datei aktualisieren"
 
-#: frontend/templates/frontend/document_edit.html:25
+#: frontend/templates/frontend/document_edit.html:27
 msgid "Change details"
 msgstr "Details ändern"
 
-#: frontend/templates/frontend/document_edit.html:38
-#: frontend/templates/frontend/document_form.html:11
+#: frontend/templates/frontend/document_edit.html:40
+#: frontend/templates/frontend/document_form.html:11 frontend/views.py:227
+#: frontend/views.py:324
 msgid "Save"
 msgstr "Speichern"
 
@@ -220,48 +221,48 @@ msgstr "Xlsx-Datei hochladen"
 msgid "Continue"
 msgstr "Weiter"
 
-#: frontend/views.py:149
+#: frontend/views.py:150
 #, python-format
 msgid "No %(verbose_name)s found matching the query"
 msgstr "No %(verbose_name)s found matching the query"
 
-#: frontend/views.py:250
+#: frontend/views.py:260
 #, python-format
 msgid "%(name)s was updated successfully"
 msgstr "%(name)s erfolgreich aktualisiert"
 
-#: frontend/views.py:321
+#: frontend/views.py:340
 #, python-format
 msgid "%(name)s was created successfully"
 msgstr "%(name)s erfolgreich erstellt"
 
-#: frontend/views.py:355
+#: frontend/views.py:374
 #, python-format
 msgid "Your change request has been accepted. New value: \"%(new_value)s\""
 msgstr "Dein Wunsch  wurde akzeptiert. Neuer Eintrag: \"%(new_value)s\""
 
-#: frontend/views.py:357
+#: frontend/views.py:376
 msgid "Your change request has been placed and is waiting for review."
 msgstr "Dein Wunsch ist gespeichert und wird bearbeitet."
 
-#: frontend/views.py:391
+#: frontend/views.py:410
 msgid "We are sorry, this is not allowed on a locked document."
 msgstr "Tut uns leid, das ist auf einem gesperrten Dokument nicht erlaubt."
 
-#: frontend/views.py:418
+#: frontend/views.py:437
 #, python-format
 msgid "The change request \"%s\" has been accepted."
 msgstr "Der Wunsch \"%s\" wurde akzeptiert."
 
-#: frontend/views.py:422
+#: frontend/views.py:441
 msgid "You do not have the permission to accept requests."
 msgstr "Dir fehlen die Rechte um Wünsche zu akzeptieren."
 
-#: frontend/views.py:449
+#: frontend/views.py:468
 msgid "Removed successfully."
 msgstr "Erfolgreich entfernt."
 
-#: frontend/views.py:461
+#: frontend/views.py:480
 msgid "You cannot withdraw this request."
 msgstr "Du kannst diesen Wunsch nicht mehr löschen."
 

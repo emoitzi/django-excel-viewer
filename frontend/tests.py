@@ -52,7 +52,7 @@ class FrontendTest(TestCase):
         return file
 
     @patch('excel_import.models.Document.parse_file')
-    def test_edit_document_creates_new_document(self, parse_file):
+    def test_edit_details_creates_new_document(self, parse_file):
         document = Document.objects.create(file=self.file, name="Test")
         parse_file.reset_mock()
         temp_file = mommy.make(TemporaryDocument,
@@ -63,7 +63,7 @@ class FrontendTest(TestCase):
         session[FILE_SESSION_PK_KEY] = temp_file.pk
         session.save()
 
-        response = self.client.post(reverse('document:edit_details', args=[document.pk]), {'worksheet': temp_file.pk,
+        response = self.client.post(reverse('document:edit_details', args=[document.pk]), {'worksheet': 1,
                                                                                            'name': 'Test',
                                                                                            'status': Document.LOCKED})
         self.assertEqual(302, response.status_code)
@@ -80,7 +80,25 @@ class FrontendTest(TestCase):
         self.assertEqual(Document.LOCKED, new_document.status)
 
     @patch('excel_import.models.Document.parse_file')
-    def test_edit_document_sets_correct_replaces_id_on_second_revision(self, parse_file):
+    def test_create_details_parses_document(self, parse_file):
+        temp_file = mommy.make(TemporaryDocument,
+                               file=self.file)
+        self.user.groups.add(Group.objects.get(name='editor'))
+        session = self.client.session
+        session[FILE_SESSION_NAME_KEY] = "test.xlsx"
+        session[FILE_SESSION_PK_KEY] = temp_file.pk
+        session.save()
+
+        self.client.post(reverse('document:create_details'), {
+            'worksheet': 1,
+            'name': 'Test',
+            'status': Document.LOCKED}
+                                 )
+
+        self.assertEqual(parse_file.call_count, 1)
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_edit_details_sets_correct_replaces_id_on_second_revision(self, parse_file):
         document = Document.objects.create(file=self.file, name="Test", current=False)
         document2 = Document.objects.create(file=self.file, name="Test", current=True, replaces=document)
         parse_file.reset_mock()
@@ -152,7 +170,7 @@ class FrontendTest(TestCase):
         self.assertEqual("Your change request has been accepted", mail.outbox[0].subject)
         self.assertListEqual([change_request.author.email], mail.outbox[0].to)
 
-    def test_edit_document_copies_pending_change_requests(self):
+    def test_edit_details_copies_pending_change_requests(self):
         document = Document.objects.create(file=self.file,
                                            name="Test",
                                            status=Document.REQUEST_ONLY)
@@ -434,7 +452,7 @@ class FrontendTest(TestCase):
 
         self.client.post(reverse('document:edit', args=[document.pk]),
                          {
-                             'file-file': self.file,
+                             'file': self.file,
                          })
 
         self.assertEqual(TemporaryDocument.objects.count(), 1)
@@ -449,7 +467,7 @@ class FrontendTest(TestCase):
 
         response = self.client.post(reverse('document:edit', args=[document.pk]),
                                     {
-                                        'file-file': self.file,
+                                        'file': self.file,
                                     })
 
         self.assertRedirects(response, reverse('document:edit_details', args=[document.pk]))
@@ -489,6 +507,94 @@ class FrontendTest(TestCase):
                                         'details-status': Document.LOCKED
                                     })
         self.assertRedirects(response, reverse('document:document', args=[document.pk]))
+
+    def test_create_forwards_to_details(self):
+        self.user.groups.add(Group.objects.get(name='editor'))
+
+        self.client.post(reverse('document:create'),
+                                    {
+                                        'file': self.file,
+                                    })
+
+        self.assertEqual(TemporaryDocument.objects.count(), 1)
+
+    def test_create_document_creates_temp_document(self):
+        self.user.groups.add(Group.objects.get(name='editor'))
+        response = self.client.post(reverse('document:create'),
+                                    {
+                                        'file': self.file,
+                                    })
+
+        self.assertRedirects(response,
+                             reverse('document:create_details'),
+                             fetch_redirect_response=False)
+
+    def test_create_document_ajax_returns_form(self):
+        self.user.groups.add(Group.objects.get(name='editor'))
+        response = self.client.post(reverse('document:create'),
+                                    {
+                                        'file': self.file,
+                                    },
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertTemplateUsed(response, 'frontend/snippets/details_form.html')
+
+    def test_edit_document_ajax_returns_form(self):
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
+
+        self.user.groups.add(Group.objects.get(name='editor'))
+        response = self.client.post(reverse('document:edit', args=[document.pk]),
+                                    {
+                                        'file': self.file,
+                                    },
+                                    HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertTemplateUsed(response, 'frontend/snippets/details_form.html')
+
+    def test_create_document_sets_file_session(self):
+        self.user.groups.add(Group.objects.get(name='editor'))
+        self.client.post(reverse('document:create'),
+                         {
+                             'file': self.file,
+                         },
+                         HTTP_X_REQUESTED_WITH='XMLHttpRequest')
+
+        self.assertTrue(FILE_SESSION_PK_KEY in self.client.session)
+        self.assertEqual(self.client.session[FILE_SESSION_NAME_KEY], 'test.xlsx')
+
+    def test_edit_document_sets_file_session(self):
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
+        self.user.groups.add(Group.objects.get(name='editor'))
+        self.client.post(reverse('document:edit', args=[document.pk]),
+                         {
+                             'file': self.file,
+                         })
+
+        self.assertTrue(FILE_SESSION_PK_KEY in self.client.session)
+        self.assertEqual(self.client.session[FILE_SESSION_NAME_KEY], 'test.xlsx')
+
+    @patch('excel_import.models.Document.parse_file')
+    def test_list_documents(self, parse_file):
+        Document.objects.create(file=self.file,
+                                name="Test",
+                                status=Document.REQUEST_ONLY)
+
+        response = self.client.get(reverse('document:list'))
+
+        self.assertTemplateUsed(response, "frontend/document_list.html")
+
+    def test_show_document(self):
+        document = Document.objects.create(file=self.file,
+                                           name="Test",
+                                           status=Document.REQUEST_ONLY)
+
+        response = self.client.get(reverse('document:document', args=[document.pk]))
+
+        self.assertTemplateUsed(response, "frontend/document_detail.html")
 
 
 @override_settings(MEDIA_ROOT=tempfile.mkdtemp(),

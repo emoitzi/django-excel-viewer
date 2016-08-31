@@ -275,6 +275,29 @@ var VIEWER = VIEWER || {};
 
         }
     };
+    VIEWER.upload = {
+        init: function() {
+            $('#id_file').change(function() {
+                var $form = $(this).parents('form');
+                $form.find('[type=submit]').hide();
+                var $target = $('#detail_div');
+                $target.html(VIEWER.upload.loading);
+                $form.ajaxSubmit({
+                    target: $target,
+                    success: function() {
+                        $target.find("form").parsley();
+                    },
+                    error: function() {
+                        $target.html('<div><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></div>');
+                    }
+                })
+
+            })
+        },
+        loading: '<div class="cssload-container">' +
+                 '<div class="cssload-speeding-wheel"></div>' +
+                 '</div>'
+    };
 
     VIEWER.initialize = {
         init: function () {
@@ -282,6 +305,7 @@ var VIEWER = VIEWER || {};
             VIEWER.cells.init();
             VIEWER.messages.init();
             VIEWER.login.init();
+            VIEWER.upload.init();
         }
     };
 

@@ -61,6 +61,7 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
     'raven.contrib.django.raven_compat',
+    'parsley',
 
 ]
 

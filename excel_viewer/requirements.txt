@@ -9,3 +9,4 @@ redis==2.10.5
 celery==3.1.23
 pytz
 raven==4.2.3
+django-parsley==0.6

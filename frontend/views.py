@@ -14,7 +14,6 @@ from django.core.urlresolvers import reverse
 from django.http import HttpResponseRedirect, HttpResponse,\
                         HttpResponseForbidden
 from django.shortcuts import render, get_object_or_404
-from django.views.decorators.http import require_http_methods
 from django.views.generic import DetailView
 from django.views.generic.edit import CreateView, UpdateView
 from django.http import Http404
@@ -71,33 +70,6 @@ def list_documents(request):
     return render(request, "frontend/document_list.html", context)
 
 
-def create_temporary_file(request, file):
-    """
-    Creates a temporary file. Is not a view!
-    :param request:
-    :param file:
-    """
-
-    media_path = ''.join(
-        [
-            request.user.username,
-            '_',
-            file.name,
-        ]
-    )
-    path = ''.join(
-        [
-            settings.MEDIA_ROOT,
-            '/',
-            media_path,
-        ])
-    request.session[FILE_SESSION_PK_KEY] = media_path
-    disk_file = open(path, 'wb+')
-    for chunk in file.chunks():
-        disk_file.write(chunk)
-    disk_file.close()
-
-
 class TempFileMixin(object):
 
     @cached_property
@@ -127,13 +99,13 @@ class TempFileMixin(object):
 
         return kwargs
 
-    def form_valid(self, form):
-        """
-        Overloaded form valid to remove session variables
-        """
-        del self.request.session[FILE_SESSION_NAME_KEY]
-        del self.request.session[FILE_SESSION_PK_KEY]
-        return super(TempFileMixin, self).form_valid(form)
+    # def form_valid(self, form):
+    #     """
+    #     Overloaded form valid to remove session variables
+    #     """
+    #     del self.request.session[FILE_SESSION_NAME_KEY]
+    #     del self.request.session[FILE_SESSION_PK_KEY]
+    #     return super(TempFileMixin, self).form_valid(form)
 
 
 class DocumentView(DetailView):
@@ -203,11 +175,11 @@ def update_document_file(document):
 
 def edit_document(request, pk):
     document = get_object_or_404(Document, pk=pk)
+    detail_success_url = reverse("document:edit_details", args=[pk])
 
     if request.method == "POST":
         file_form = TempFileForm(request.POST,
-                                 request.FILES,
-                                 prefix='file')
+                                 request.FILES)
         detail_form = DocumentForm(request.POST,
                                    instance=document,
                                    prefix='details')
@@ -216,17 +188,26 @@ def edit_document(request, pk):
             instance = file_form.save()
             request.session[FILE_SESSION_PK_KEY] = instance.pk
 
-            original_filename = file_form.cleaned_data["file"].name
+            file = file_form.cleaned_data['file']
+            original_filename = file.name
             request.session[FILE_SESSION_NAME_KEY] = original_filename
 
-            return HttpResponseRedirect(reverse("document:edit_details",
-                                                args=[pk]))
+            if request.is_ajax():
+                context = {
+                    "form": DocumentDetailForm(file=file, instance=document),
+                    "button_title": _("Save"),
+                    "action": detail_success_url,
+                }
+                response = render(request, "frontend/snippets/details_form.html", context)
+                return response
+
+            return HttpResponseRedirect(detail_success_url)
         elif detail_form.is_valid():
             detail_form.save()
             return HttpResponseRedirect(reverse("document:document",
                                                 args=[pk]))
     else:
-        file_form = TempFileForm(prefix='file')
+        file_form = TempFileForm()
         detail_form = DocumentForm(instance=document,
                                    prefix='details')
 
@@ -274,22 +255,6 @@ class DocumentEditDetails(PermissionRequiredMixin,
 
 edit_details = login_required(DocumentEditDetails.as_view())
 
-#
-# def create(request):
-#
-#     if request.method == "POST":
-#         form = TempFileForm(request.POST, request.FILES)
-#         if form.is_valid():
-#             file = form.cleaned_data["file"]
-#             create_temporary_file(request, file)
-#             return HttpResponseRedirect(reverse("document:create_details"))
-#     else:
-#         form = TempFileForm()
-#
-#     return render(request,
-#                   "frontend/document_form.html",
-#                   {"form": form})
-
 
 class DocumentCreate(PermissionRequiredMixin,
                      CreateView):
@@ -304,8 +269,17 @@ class DocumentCreate(PermissionRequiredMixin,
         response = super(DocumentCreate, self).form_valid(form)
         self.request.session[FILE_SESSION_PK_KEY] = self.object.pk
 
-        original_filename = form.cleaned_data["file"].name
+        file = form.cleaned_data["file"]
+        original_filename = file.name
         self.request.session[FILE_SESSION_NAME_KEY] = original_filename
+
+        if self.request.is_ajax():
+            context = {
+                "form": DocumentDetailForm(file=file),
+                "button_title": _("Save"),
+                "action": self.get_success_url(),
+            }
+            response = render(self.request, "frontend/snippets/details_form.html", context)
         return response
 
 
