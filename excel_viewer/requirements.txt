@@ -1,7 +1,7 @@
 django==1.8.13
 postgres
 openpyxl==2.3.3
-django-allauth==0.24.1
+django-allauth==0.38.0
 django-debug-toolbar
 djangorestframework==3.3.2
 model-mommy==1.2.6
